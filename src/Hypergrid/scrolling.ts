@@ -425,5 +425,22 @@ exports.mixin = {
      */
     pageRight: function() {
         throw 'page right not yet implemented';
+    },
+
+    scrollHorizontal: function(grid) {
+        const canvas = grid.div.querySelector("canvas");
+        if (canvas == null) {
+            console.log("Unable to find canvas element, cannot listen to wheel events");
+            return;
+        }
+        canvas.addEventListener("wheel", (event) => {
+            if (event.shiftKey) {
+                const scrollScaler = 0.005;
+                const newScrollValue = this.sbHScroller.index + event.deltaY * scrollScaler;
+                this.setHScrollValue(newScrollValue);
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        })
     }
 };

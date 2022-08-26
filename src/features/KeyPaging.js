@@ -9,7 +9,8 @@ var commands = {
     PAGEDOWN: function(grid) { grid.pageDown(); },
     PAGEUP: function(grid) { grid.pageUp(); },
     PAGELEFT: function(grid) { grid.pageLeft(); },
-    PAGERIGHT: function(grid) { grid.pageRight(); }
+    PAGERIGHT: function(grid) { grid.pageRight(); },
+    shiftKey: function(grid) { grid.scrollHorizontal(grid); }
 };
 
 /**
