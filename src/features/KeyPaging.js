@@ -23,7 +23,7 @@ var KeyPaging = Feature.extend('KeyPaging', {
      * @param {Object} event - the event details
      * @memberOf KeyPaging.prototype
      */
-    handleKeyDown: function(grid, event) {
+    handleKeyUp: function(grid, event) {
         var func = commands[event.detail.char];
         if (func) {
             func(grid);
