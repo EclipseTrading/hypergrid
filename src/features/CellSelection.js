@@ -74,10 +74,11 @@ var CellSelection = Feature.extend('CellSelection', {
             isSelectable = grid.behavior.getCellProperty(event.dataCell.x, event.gridCell.y, 'cellSelection'),
             lastSelection = grid.lastSelection;
         var currentCell = { x: dx, y: dy };
-        const clickedWithinLastSelection = lastSelection && lastSelection.some((cell) => cell.x == currentCell.x && cell.y == currentCell.y);
-
-        if (clickedWithinLastSelection && event.primitiveEvent.detail.isRightClick) {
-            return;
+        if (event.primitiveEvent.detail.isRightClick) {
+            const clickedWithinLastSelection = lastSelection && lastSelection.some((cell) => cell.x == currentCell.x && cell.y == currentCell.y);
+            if (clickedWithinLastSelection) {
+                return;
+            }
         }
         
         if (isSelectable && event.isDataCell) {
