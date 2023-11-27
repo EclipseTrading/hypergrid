@@ -71,9 +71,16 @@ var CellSelection = Feature.extend('CellSelection', {
     handleMouseDown: function(grid, event) {
         var dx = event.gridCell.x,
             dy = event.dataCell.y,
-            isSelectable = grid.behavior.getCellProperty(event.dataCell.x, event.gridCell.y, 'cellSelection');
+            isSelectable = grid.behavior.getCellProperty(event.dataCell.x, event.gridCell.y, 'cellSelection'),
+            lastSelection = grid.lastSelection;
+        var currentCell = { x: dx, y: dy };
+        const clickedWithinLastSelection = lastSelection && lastSelection.some((cell) => cell.x == currentCell.x && cell.y == currentCell.y);
 
-        if (isSelectable && event.isDataCell && !event.primitiveEvent.detail.isRightClick) {
+        if (clickedWithinLastSelection && event.primitiveEvent.detail.isRightClick) {
+            return;
+        }
+        
+        if (isSelectable && event.isDataCell) {
             var dCell = grid.newPoint(dx, dy),
                 primEvent = event.primitiveEvent,
                 keys = primEvent.detail.keys;
