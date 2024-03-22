@@ -1,0 +1,77 @@
+/* This CSS is for the test harness. The scrollbar code itself does not depend on this stylesheet. */
+body {
+    background-color: #666;
+    font-family: sans-serif;
+    font-size: x-small;
+}
+canvas {
+    background-color: purple;
+}
+div.block {
+    display: inline-block;
+    text-align: center;
+    vertical-align: top;
+}
+fieldset {
+    display: inline-block;
+    width: 60%;
+    border: 2px solid #aaa;
+    border-radius: 8px;
+    text-align: left;
+    color: #aaa;
+    padding: 0 2em;
+    letter-spacing: 1px;
+}
+legend {
+    padding: 0 .5em;
+}
+.test-panel ul {
+    margin: 0;
+    padding: 6px 0 6px 2.5em;
+}
+div.container {
+    position: relative;
+    margin: 25px;
+    width: 300px;
+    height: 300px;
+    background-color: beige;
+    font-weight: bold;
+    font-size: xx-large;
+    text-align: center;
+}
+div.scrollable {
+    overflow-x: scroll;
+    overflow-y: scroll;
+}
+div.finbars {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+div.content {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    opacity: .5;
+    overflow-y: hidden;
+    color: red;
+}
+div.content:first-child {
+    color: green;
+    transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg)
+}
+div.resizer {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-right: 3px solid lightgreen;
+    border-bottom: 3px solid lightgreen;
+    cursor: se-resize;
+}
+.test-panel { margin: 1.5em 0 2em 1.5em; padding: 0; }
+.test-panel li { margin: 1em 0; }
+.test-panel .val { font-weight: bold; }
+.test-panel span { margin: 0 .25em; padding: .1em .5em .15em; border-radius: 3px; border: 1px solid transparent; }
+.test-panel span:last-child:before { content: '\25ba\a0'; font-size: smaller; }
+.test-panel span.listening { border-color: yellow }
