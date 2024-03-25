@@ -1,8 +1,8 @@
-'use strict';
-
 /* eslint-env node, browser */
+import cssInjector from 'css-injector';
 
-var cssInjector = require('css-injector');
+var injectCSS = require('inject-stylesheet-template').bind(require('../../css'));
+const cssFinBars = injectCSS('finbars');
 
 // Following is the sole style requirement for bar and thumb elements.
 // Maintained in code so not dependent being in stylesheet.
@@ -48,8 +48,8 @@ function FinBar(options) {
     var thumb = this.thumb = document.createElement('div');
     thumb.classList.add('thumb');
     thumb.setAttribute('style', THUMB_STYLE);
-    thumb.onclick = bound.shortStop;
-    thumb.onmouseover = bound.onmouseover;
+    thumb.onclick = bound['shortStop'];
+    thumb.onmouseover = bound['onmouseover'];
     thumb.onmouseout = this._bound.onmouseout;
 
     /**
@@ -70,7 +70,7 @@ function FinBar(options) {
      bar.classList.add('finbar-vertical');
     bar.setAttribute('style', BAR_STYLE);
     bar.onmousedown = this._bound.onmousedown;
-    if (this.paging) { bar.onclick = bound.onclick; }
+    if (this.paging) { bar.onclick = bound['onclick']; }
     bar.appendChild(thumb);
 
     options = options || {};
@@ -451,11 +451,10 @@ FinBar.prototype = {
      *
      * @desc This method recalculates the thumb size and position. Call it once after inserting your scrollbar into the DOM, and repeatedly while resizing the scrollbar (which typically happens when the scrollbar's parent is resized by user.
      *
-     * > This function shifts args if first arg omitted.
-     *
-     * @param {number} [increment=this.increment] - Resets {@link FooBar#increment|increment} (see).
-     *
-     * @param {finbarStyles} [barStyles=this.barStyles] - (See type definition for details.) Scrollbar styles to be applied to the bar element.
+     * @param {Object} [options] - Optional options object.
+     * @param {number} [options.increment=this.increment] - Resets {@link FooBar#increment|increment} (see).
+     * @param {finbarStyles} [options.barStyles=this.barStyles] - (See type definition for details.) Scrollbar styles to be applied to the bar element.
+     * @param {number} [options.containerSize] - Defines the size of the container (visible part), when {@link FooBar#onChange|onChange} isn't {@link FooBar#scrollRealContent|scrollRealContent}.
      *
      * Only specify a `barStyles` object when you need to override stylesheet values. If provided, becomes the new default (`this.barStyles`), for use as a default on subsequent calls.
      *
@@ -464,7 +463,8 @@ FinBar.prototype = {
      * @returns {FinBar} Self for chaining.
      * @memberOf FinBar.prototype
      */
-    resize: function (increment, barStyles) {
+    resize: function ({increment, barStyles}: {increment?: number, barStyles?: finbarStyles} = {}) {
+
         var bar = this.bar;
 
         if (!bar.parentNode) {
@@ -473,12 +473,6 @@ FinBar.prototype = {
 
         var container = this.container || bar.parentElement,
             containerRect = container.getBoundingClientRect();
-
-        // shift args if if 1st arg omitted
-        if (typeof increment === 'object') {
-            barStyles = increment;
-            increment = undefined;
-        }
 
         this.style = this.barStyles = barStyles || this.barStyles;
 
@@ -497,7 +491,6 @@ FinBar.prototype = {
             this.containerSize = containerRect[this.oh.size];
             this.increment = this.containerSize / (this.contentSize - this.containerSize) * (this._max - this._min);
         } else {
-            this.containerSize = 1;
             this.increment = increment || this.increment;
         }
 
@@ -546,9 +539,9 @@ FinBar.prototype = {
     shortenEndBy: function (whichEnd, otherFinBar) {
         if (!otherFinBar) {
             delete this._auxStyles;
-        } else if (otherFinBar instanceof FinBar && otherFinBar.orientation !== this.orientation) {
-            var otherStyle = window.getComputedStyle(otherFinBar.bar),
-                ooh = orientationHashes[otherFinBar.orientation];
+        } else if (otherFinBar instanceof FinBar && otherFinBar['orientation'] !== this.orientation) {
+            var otherStyle = window.getComputedStyle(otherFinBar['bar']),
+                ooh = orientationHashes[otherFinBar['orientation']];
             this._auxStyles = {};
             this._auxStyles[whichEnd] = otherStyle[ooh.thickness];
         }
@@ -663,7 +656,7 @@ FinBar.prototype = {
     }
 };
 
-function extend(obj) {
+function extend(obj, ...args) {
     for (var i = 1; i < arguments.length; ++i) {
         var objn = arguments[i];
         if (objn) {
@@ -824,8 +817,8 @@ function getNormal() {
         var browser = /Edge/.test(ua) ? 'edge' :
             /Opera|OPR|Chrome|Safari/.test(ua) ? 'webkit' :
                 /Firefox/.test(ua) ? 'moz' :
-                    document.documentMode ? 'ms' : // internet explorer
-                        undefined;
+                    document['documentMode'] ? 'ms' : // internet explorer
+                        '';
         var platformDictionary = FinBar.normals[platform] || {};
         return platformDictionary[browser];
     }
@@ -868,10 +861,6 @@ var axis = {
     right:  'horizontal',
     width:  'horizontal'
 };
-
-var cssFinBars; // definition inserted by gulpfile between following comments
-/* inject:css */
-/* endinject */
 
 function error(msg) {
     throw 'finbars: ' + msg;

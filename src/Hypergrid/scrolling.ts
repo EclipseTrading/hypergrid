@@ -65,7 +65,7 @@ exports.mixin = {
      * @summary Set for `scrollingNow` field.
      * @param {boolean} isItNow - The type of event we are interested in.
      */
-    setScrollingNow: function(isItNow) {
+    setScrollingNow: function (isItNow) {
         this.scrollingNow = isItNow;
     },
 
@@ -73,7 +73,7 @@ exports.mixin = {
      * @memberOf Hypergrid#
      * @returns {boolean} The `scrollingNow` field.
      */
-    isScrollingNow: function() {
+    isScrollingNow: function () {
         return this.scrollingNow;
     },
 
@@ -83,7 +83,7 @@ exports.mixin = {
      * @param {number} offsetX - Scroll in the x direction this much.
      * @param {number} offsetY - Scroll in the y direction this much.
      */
-    scrollBy: function(offsetX, offsetY) {
+    scrollBy: function (offsetX, offsetY) {
         this.scrollHBy(offsetX);
         this.scrollVBy(offsetY);
     },
@@ -93,7 +93,7 @@ exports.mixin = {
      * @summary Scroll vertically by the provided offset.
      * @param {number} offsetY - Scroll in the y direction this much.
      */
-    scrollVBy: function(offsetY) {
+    scrollVBy: function (offsetY) {
         var max = this.sbVScroller.range.max;
         var oldValue = this.getVScrollValue();
         var newValue = Math.min(max, Math.max(0, oldValue + offsetY));
@@ -107,7 +107,7 @@ exports.mixin = {
      * @summary Scroll horizontally by the provided offset.
      * @param {number} offsetX - Scroll in the x direction this much.
      */
-    scrollHBy: function(offsetX) {
+    scrollHBy: function (offsetX) {
         var max = this.sbHScroller.range.max;
         var oldValue = this.getHScrollValue();
         var newValue = Math.min(max, Math.max(0, oldValue + offsetX));
@@ -116,7 +116,7 @@ exports.mixin = {
         }
     },
 
-    scrollToMakeVisible: function(c, r) {
+    scrollToMakeVisible: function (c, r) {
         var delta,
             dw = this.renderer.dataWindow,
             fixedColumnCount = this.properties.fixedColumnCount,
@@ -154,7 +154,7 @@ exports.mixin = {
         }
     },
 
-    selectCellAndScrollToMakeVisible: function(c, r) {
+    selectCellAndScrollToMakeVisible: function (c, r) {
         this.scrollToMakeVisible(c, r);
         this.selectCell(c, r, true);
     },
@@ -166,7 +166,7 @@ exports.mixin = {
      * @desc Set the vertical scroll value.
      * @param {number} newValue - The new scroll value.
      */
-    setVScrollValue: function(y) {
+    setVScrollValue: function (y) {
         var self = this;
         y = Math.min(this.sbVScroller.range.max, Math.max(0, Math.round(y)));
         if (y !== this.vScrollValue) {
@@ -176,7 +176,7 @@ exports.mixin = {
             this.vScrollValue = y;
             this.sbVScroller.index = y;
             this.scrollValueChangedNotification();
-            setTimeout(function() {
+            setTimeout(function () {
                 // self.sbVRangeAdapter.subjectChanged();
                 self.fireScrollEvent('fin-scroll-y', oldY, y);
             });
@@ -188,7 +188,7 @@ exports.mixin = {
      * @this {Hypergrid}
      * @return {number} The vertical scroll value.
      */
-    getVScrollValue: function() {
+    getVScrollValue: function () {
         return this.vScrollValue;
     },
 
@@ -199,7 +199,7 @@ exports.mixin = {
      * @desc Set the horizontal scroll value.
      * @param {number} newValue - The new scroll value.
      */
-    setHScrollValue: function(x) {
+    setHScrollValue: function (x) {
         var self = this;
         x = Math.min(this.sbHScroller.range.max, Math.max(0, Math.round(x)));
         if (x !== this.hScrollValue) {
@@ -209,7 +209,7 @@ exports.mixin = {
             this.hScrollValue = x;
             this.sbHScroller.index = x;
             this.scrollValueChangedNotification();
-            setTimeout(function() {
+            setTimeout(function () {
                 //self.sbHRangeAdapter.subjectChanged();
                 self.fireScrollEvent('fin-scroll-x', oldX, x);
                 //self.synchronizeScrollingBoundries(); // todo: Commented off to prevent the grid from bouncing back, but there may be repercussions...
@@ -222,7 +222,7 @@ exports.mixin = {
      * @this {Hypergrid}
      * @returns The vertical scroll value.
      */
-    getHScrollValue: function() {
+    getHScrollValue: function () {
         return this.hScrollValue;
     },
 
@@ -232,8 +232,8 @@ exports.mixin = {
      * @this {Hypergrid}
      * @desc Initialize the scroll bars.
      */
-    initScrollbars: function() {
-        if (this.sbHScroller && this.sbVScroller){
+    initScrollbars: function () {
+        if (this.sbHScroller && this.sbVScroller) {
             return;
         }
 
@@ -277,10 +277,9 @@ exports.mixin = {
         this.resizeScrollbars();
     },
 
-    resizeScrollbars: function() {
+    resizeScrollbars: function () {
         this.sbHScroller.shortenBy(this.sbVScroller).resize();
-        //this.sbVScroller.shortenBy(this.sbHScroller);
-        this.sbVScroller.resize();
+        this.sbVScroller.shortenBy(this.sbHScroller).resize();
     },
 
     /**
@@ -288,25 +287,33 @@ exports.mixin = {
      * @this {Hypergrid}
      * @desc Scroll values have changed, we've been notified.
      */
-    setVScrollbarValues: function(max) {
+    setVScrollbarValues: function (max, containerSize) {
+        // Set the scroll range, which by default resets the contentSize.
         this.sbVScroller.range = {
             min: 0,
             max: max
         };
+        // Redefine the sizes.
+        this.sbVScroller.contentSize = max + containerSize;
+        this.sbVScroller.containerSize = containerSize;
     },
 
-    setHScrollbarValues: function(max) {
+    setHScrollbarValues: function (max, containerSize) {
+        // Set the scroll range, which by default resets the contentSize.
         this.sbHScroller.range = {
             min: 0,
             max: max
         };
+        // Redefine the sizes.
+        this.sbHScroller.contentSize = max + containerSize;
+        this.sbHScroller.containerSize = containerSize;
     },
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this {Hypergrid}
      */
-    scrollValueChangedNotification: function() {
+    scrollValueChangedNotification: function () {
         if (
             this.hScrollValue !== this.sbPrevHScrollValue ||
             this.vScrollValue !== this.sbPrevVScrollValue
@@ -328,7 +335,7 @@ exports.mixin = {
      * @desc The data dimensions have changed, or our pixel boundaries have changed.
      * Adjust the scrollbar properties as necessary.
      */
-    synchronizeScrollingBoundaries: function() {
+    synchronizeScrollingBoundaries: function () {
         var bounds = this.getBounds();
         if (!bounds) {
             return;
@@ -337,7 +344,7 @@ exports.mixin = {
         var numFixedColumns = this.getFixedColumnCount(),
             numColumns = this.getColumnCount(),
             numRows = this.getRowCount(),
-            scrollableWidth = bounds.width - this.behavior.getFixedColumnsMaxWidth(),
+            scrollableWidth = bounds.width - this.behavior.getFixedColumnsMaxWidth() - /* scroll bar */ 12,
             gridProps = this.properties,
             borderBox = gridProps.boxSizing === 'border-box',
             lineGap = borderBox ? 0 : gridProps.gridLinesVWidth;
@@ -353,7 +360,7 @@ exports.mixin = {
             lastPageColumnCount--;
         }
 
-        var scrollableHeight = this.renderer.getVisibleScrollHeight();
+        var scrollableHeight = this.renderer.getVisibleScrollHeight() - /* scroll bar */ 12;
         lineGap = borderBox ? 0 : gridProps.gridLinesHWidth;
 
         for (
@@ -370,12 +377,14 @@ exports.mixin = {
         // inform scroll bars
         if (this.sbHScroller) {
             var hMax = Math.max(0, numColumns - numFixedColumns - lastPageColumnCount);
-            this.setHScrollbarValues(hMax);
+            this.setHScrollbarValues(hMax, lastPageColumnCount);
+            // When hMax is reduced, ensure the scroll position is not beyond the new max.
             this.setHScrollValue(Math.min(this.getHScrollValue(), hMax));
         }
         if (this.sbVScroller) {
             var vMax = Math.max(0, numRows - gridProps.fixedRowCount - lastPageRowCount);
-            this.setVScrollbarValues(vMax);
+            this.setVScrollbarValues(vMax, lastPageRowCount);
+            // When vMax is reduced, ensure the scroll position is not beyond the new max.
             this.setVScrollValue(Math.min(this.getVScrollValue(), vMax));
         }
 
@@ -391,7 +400,7 @@ exports.mixin = {
      * @desc Scroll up one full page when clicking outside scroll bar.
      * @returns {number}
      */
-    pageUpScrollBar: function() {
+    pageUpScrollBar: function () {
         var rowNum = this.renderer.getPageUpRow();
         this.setVScrollValue(rowNum);
         return rowNum;
@@ -403,7 +412,7 @@ exports.mixin = {
      * @desc Scroll down one full page when clicking outside scroll bar.
      * @returns {number}
      */
-    pageDownScrollBar: function() {
+    pageDownScrollBar: function () {
         var rowNum = this.renderer.getPageDownRow();
         this.setVScrollValue(rowNum);
         return rowNum;
@@ -415,7 +424,7 @@ exports.mixin = {
      * @desc Scroll up one full page. Select top-most cell
      * @returns {number}
      */
-    pageUp: function() {
+    pageUp: function () {
         var currentCell = this.lastSelection[0];
         var rowUpIndex = this.renderer.getPageUpRow();
         this.setVScrollValue(rowUpIndex);
@@ -431,13 +440,13 @@ exports.mixin = {
      * @desc Scroll down one full page. Select bottom-most cell
      * @returns {number}
      */
-    pageDown: function() {
+    pageDown: function () {
         var maxRow = this.getRowCount() - 1;
         var currentCell = this.lastSelection[0];
         var rowDownIndex = this.renderer.getPageDownRow();
         if (currentCell.y - rowDownIndex >= 0) {
             this.setVScrollValue(rowDownIndex);
-            rowDownIndex += this.getVisibleRowsCount()-1;
+            rowDownIndex += this.getVisibleRowsCount() - 1;
         }
         rowDownIndex >= maxRow ? rowDownIndex = maxRow : undefined;
         this.selectCell(currentCell.x, rowDownIndex, false);
@@ -451,7 +460,7 @@ exports.mixin = {
      * @this {Hypergrid}
      * @desc Scroll entire page to most left. Select most-left cell
      */
-    pageLeft: function() {
+    pageLeft: function () {
         var currentCell = this.lastSelection[0];
         this.setHScrollValue(this.sbHScroller.range.min)
         this.selectCell(0, currentCell.y, false);
@@ -463,7 +472,7 @@ exports.mixin = {
      * @this {Hypergrid}
      * @desc Scroll entire page to most right. Select most-right cell
      */
-    pageRight: function() {
+    pageRight: function () {
         var maxCol = this.numColumns - 1;
         var currentCell = this.lastSelection[0];
         this.setHScrollValue(this.sbHScroller.range.max)
