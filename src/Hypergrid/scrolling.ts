@@ -1,5 +1,6 @@
-
-var Scrollbar = require('./modules').Scrollbar;
+import { FinBar } from '../finbars/finbars';
+import modules from './modules';
+const Scrollbar = modules.Scrollbar;
 
 /**
  * @typedef {any} Hypergrid TODO
@@ -30,18 +31,18 @@ exports.mixin = {
     hScrollValue: 0,
 
     /**
-     * The verticl scroll bar model/controller.
+     * The vertical scroll bar model/controller.
      * @type {FinBar}
      * @memberOf Hypergrid#
      */
-    sbVScroller: null,
+    sbVScroller: null as FinBar|null,
 
     /**
      * The horizontal scroll bar model/controller.
      * @type {FinBar}
      * @memberOf Hypergrid#
      */
-    sbHScroller: null,
+    sbHScroller: null as FinBar|null,
 
     /**
      * The previous value of sbVScrollVal.
@@ -344,7 +345,7 @@ exports.mixin = {
         var numFixedColumns = this.getFixedColumnCount(),
             numColumns = this.getColumnCount(),
             numRows = this.getRowCount(),
-            scrollableWidth = bounds.width - this.behavior.getFixedColumnsMaxWidth() - /* scroll bar */ 12,
+            scrollableWidth = bounds.width - this.behavior.getFixedColumnsMaxWidth() - this.sbHScroller.thickness,
             gridProps = this.properties,
             borderBox = gridProps.boxSizing === 'border-box',
             lineGap = borderBox ? 0 : gridProps.gridLinesVWidth;
@@ -360,7 +361,8 @@ exports.mixin = {
             lastPageColumnCount--;
         }
 
-        var scrollableHeight = this.renderer.getVisibleScrollHeight() - /* scroll bar */ 12;
+        // Note: Scrollable height excludes the header.
+        var scrollableHeight = this.renderer.getVisibleScrollHeight() - this.sbVScroller.thickness;
         lineGap = borderBox ? 0 : gridProps.gridLinesHWidth;
 
         for (
@@ -401,9 +403,8 @@ exports.mixin = {
      * @returns {number}
      */
     pageUpScrollBar: function () {
-        var rowNum = this.renderer.getPageUpRow();
-        this.setVScrollValue(rowNum);
-        return rowNum;
+        this.setVScrollValue(this.vScrollValue - this.sbVScroller.containerSize);
+        return this.vScrollValue; // Fetch again, possibly adjusted for min range.
     },
 
     /**
@@ -413,9 +414,8 @@ exports.mixin = {
      * @returns {number}
      */
     pageDownScrollBar: function () {
-        var rowNum = this.renderer.getPageDownRow();
-        this.setVScrollValue(rowNum);
-        return rowNum;
+        this.setVScrollValue(this.vScrollValue + this.sbVScroller.containerSize);
+        return this.vScrollValue; // Fetch again, possibly adjusted for min range.
     },
 
     /**
