@@ -590,7 +590,7 @@ export class FinBar {
 
     /**
      * Sets the proportional thumb size and hides thumb when 100%.
-     * @remarks The thumb size has an absolute minimum of 20 (pixels).
+     * @remarks The thumb size has an absolute minimum of 30 (pixels).
      */
     private _setThumbSize() {
         var oh = this.oh,
@@ -599,7 +599,7 @@ export class FinBar {
             thumbMarginTrailing = parseInt(thumbComp[oh.marginTrailing]),
             thumbMargins = thumbMarginLeading + thumbMarginTrailing,
             barSize = this.bar.getBoundingClientRect()[oh.size],
-            thumbSize = Math.max(20, barSize * this.containerSize / this.contentSize);
+            thumbSize = Math.max(30, barSize * this.containerSize / this.contentSize);
 
         if (this.containerSize < this.contentSize) {
             this.bar.style.visibility = 'visible';
@@ -728,6 +728,9 @@ function validRange(range) {
     }
 }
 
+/** Class name for applying translucency to the scroll bar. */
+const translucent = '_translucent';
+
 /**
  * @remarks The functions defined in this object are all DOM event handlers that are bound by the FinBar constructor to each new instance. In other words, the `this` value of these handlers, once bound, refer to the FinBar object and not to the event emitter. "Do not consume raw."
  */
@@ -790,6 +793,14 @@ var handlersToBeBound = {
     },
 
     onmousedown(this: FinBar, evt: MouseEvent) {
+        // Toggle translucency for debugging what is under the scroll bar.
+        if (evt.ctrlKey) {
+            this.bar.classList[this.bar.classList.contains(translucent) ? 'remove' : 'add'](translucent);
+            evt.stopPropagation();
+            evt.preventDefault();
+            return;
+        }
+
         var thumbBox = this.thumb.getBoundingClientRect();
         this.pinOffset = evt[this.oh.axis] - thumbBox[this.oh.leading] + this.bar.getBoundingClientRect()[this.oh.leading] + this._thumbMarginLeading;
         document.documentElement.style.cursor = 'default';
