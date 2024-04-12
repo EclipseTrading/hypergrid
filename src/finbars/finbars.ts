@@ -119,9 +119,9 @@ export class FinBar {
     constructor(options?: FinBarOptions) {
         // make bound versions of all the mouse event handler
         var bound = this._bound = {} as typeof handlersToBeBound;
-        Object.keys(handlersToBeBound).forEach(function (key) {
+        Object.keys(handlersToBeBound).forEach((key) => {
             bound[key] = handlersToBeBound[key].bind(this);
-        }, this);
+        });
 
         var thumb = this.thumb = document.createElement('div');
         thumb.classList.add('thumb');
@@ -369,13 +369,15 @@ export class FinBar {
     }
 
     /**
-     * Enable page up/dn clicks.
+     * Enable page up/down clicks.
      * @remarks
      * Set by the constructor. See the similarly named property in the {@link finbarOptions} object.
      *
      * If truthy, listen for clicks in page-up and page-down regions of scrollbar.
      *
      * If an object, call `.paging.up()` on page-up clicks and `.paging.down()` will be called on page-down clicks.
+     *
+     * If falsy, do not page but jump to relative location instead.
      *
      * Changing the truthiness of this value after instantiation currently has no effect.
      * @readonly
@@ -616,6 +618,11 @@ export class FinBar {
         return this.bar.style.visibility === 'visible' ? this.bar.getBoundingClientRect()[this.oh.thickness] : 0;
     }
 
+    /** Gets the container that has the scrollbars. */
+    get scrollContainer() {
+        return this.container || this.bar.parentElement;
+    }
+
     /**
      * @summary Remove the scrollbar.
      * @desc Unhooks all the event handlers and then removes the element from the DOM. Always call this method prior to disposing of the scrollbar object.
@@ -626,7 +633,7 @@ export class FinBar {
         this._removeEvt('mousemove');
         this._removeEvt('mouseup');
 
-        if (this.container || this.bar.parentElement) {
+        if (this.scrollContainer) {
             this._removeEvt('wheel');
         }
 
@@ -730,13 +737,16 @@ var handlersToBeBound = {
         evt.stopPropagation();
     },
 
-    onwheel(this: FinBar, evt) {
-        this.index += evt[this.deltaProp] * this[this.deltaProp + 'Factor'] * this.normal;
+    onwheel(this: FinBar, evt: WheelEvent) {
+        this.index += Math.floor(evt[this.deltaProp] * this[this.deltaProp + 'Factor'] * this.normal);
+
+        this.scrollContainer.dispatchEvent(new WheelEvent('fin-bars-wheel', evt));
+
         evt.stopPropagation();
         evt.preventDefault();
     },
 
-    onclick(this: FinBar, evt) {
+    onclick(this: FinBar, evt: PointerEvent) {
         var thumbBox = this.thumb.getBoundingClientRect(),
             goingUp = evt[this.oh.coordinate] < thumbBox[this.oh.leading];
 
@@ -745,8 +755,17 @@ var handlersToBeBound = {
             if (typeof pagingFn === 'function') {
                 this.index = pagingFn(Math.round(this.index));
             }
-        } else {
+        } else if (this.paging === true) {
             this.index += goingUp ? -this.increment : this.increment;
+        }
+        else {
+            // Jump instead of page.
+            const position = evt[this.oh.offset];
+            const thumbIndexOffset = Math.round(this.containerSize / 2); // To place the thumb in the middle where clicked.
+            this.index = Math.max(
+                0, // Ensure index is not negative.
+                Math.round(this._min + (position / this._thumbMax) * (this._max - this._min)) - thumbIndexOffset
+            );
         }
 
         // make the thumb glow momentarily
@@ -779,6 +798,8 @@ var handlersToBeBound = {
 
         this._addEvt('mousemove');
         this._addEvt('mouseup');
+
+        this.scrollContainer.dispatchEvent(new MouseEvent('fin-bars-dragstart', evt));
 
         evt.stopPropagation();
         evt.preventDefault();
@@ -817,6 +838,8 @@ var handlersToBeBound = {
         } else {
             (this._bound.onmouseout as () => void)();
         }
+
+        this.scrollContainer.dispatchEvent(new MouseEvent('fin-bars-dragend', evt));
 
         evt.stopPropagation();
         evt.preventDefault();
@@ -866,7 +889,8 @@ const orientationHashes = {
         marginLeading: 'marginTop',
         marginTrailing: 'marginBottom',
         thickness: 'width',
-        delta: 'deltaY'
+        delta: 'deltaY',
+        offset: 'offsetY'
     } as OrientationHashType,
     horizontal: {
         coordinate: 'clientX',
@@ -879,7 +903,8 @@ const orientationHashes = {
         marginLeading: 'marginLeft',
         marginTrailing: 'marginRight',
         thickness: 'height',
-        delta: 'deltaX'
+        delta: 'deltaX',
+        offset: 'offsetX'
     } as OrientationHashType
 };
 

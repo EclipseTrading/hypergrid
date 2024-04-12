@@ -244,7 +244,8 @@ exports.mixin = {
             orientation: 'horizontal',
             deltaXFactor: this.constructor.defaults.wheelHFactor,
             onchange: self.setHScrollValue.bind(self),
-            cssStylesheetReferenceElement: this.div
+            cssStylesheetReferenceElement: this.div,
+            paging: false, // Jump to relative location instead.
         });
 
         var vertBar = new Scrollbar({
@@ -252,10 +253,7 @@ exports.mixin = {
             deltaYFactor: this.constructor.defaults.wheelVFactor,
             onchange: self.setVScrollValue.bind(self),
             cssStylesheetReferenceElement: this.div,
-            paging: {
-                up: self.pageUpScrollBar.bind(self),
-                down: self.pageDownScrollBar.bind(self)
-            }
+            paging: false, // Jump to relative location instead.
         });
 
         this.sbHScroller = horzBar;

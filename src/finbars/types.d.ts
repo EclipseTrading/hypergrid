@@ -57,6 +57,8 @@ export interface OrientationHashType {
     thickness: 'width'|'height';
     /** The name of the `WheelEvent` property that holds the relevant delta value for the wheel movement. */
     delta: 'deltaY'|'deltaX';
+    /** The name of the `MouseEvent` property that holds the relevant offset value for the position on the scroll bar. */
+    offset: 'offsetY'|'offsetX';
 }
 
 /**
