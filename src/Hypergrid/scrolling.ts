@@ -278,7 +278,10 @@ exports.mixin = {
 
     resizeScrollbars: function () {
         this.sbHScroller.shortenBy(this.sbVScroller).resize();
-        this.sbVScroller.shortenBy(this.sbHScroller).resize();
+        this.sbVScroller
+            // NOTE: Below is commented out because it would show a square in the corner not covered by the scroll bar.
+            //.shortenBy(this.sbHScroller)
+            .resize();
     },
 
     /**
