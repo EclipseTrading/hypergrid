@@ -10,10 +10,12 @@
  * ```
  */
 
+import {FinBar} from '../finbars/finbars';
+
 // overridable modules
 // Hypergrid vectors through here for these modules
-module.exports = {
-    Scrollbar: require('finbars'),
+const modules = {
+    Scrollbar: FinBar,
     templater: require('mustache') // mustache interface: { render: function(template, context) }
 };
 
@@ -21,14 +23,16 @@ module.exports = {
 // Access via `Hypergrid.require`
 // For users of pre-bundled build file (others should use `require`)
 // These are NOT overridable so non-configurable, non-writable
-Object.defineProperties(module.exports, {
+Object.defineProperties(modules, {
     'datasaur-base': { value: require('datasaur-base') }, // may be removed in a future release
     'datasaur-local': { value: require('datasaur-local') }, // may be removed in a future release
     'extend-me': {value: require('extend-me') },
-    finbars: { value: require('finbars') },
+    finbars: { value: FinBar },
     'object-iterators': { value: require('object-iterators') },
     overrider: { value: require('overrider') },
     rectangular: { value: require('rectangular') },
     'sparse-boolean-array': { value: require('sparse-boolean-array') },
     synonomous: { value: require('synonomous') }
 });
+
+export default modules;
