@@ -11,25 +11,6 @@
  */
 var Base = require('extend-me').Base;
 
-Object.defineProperty(Base.prototype, 'version', {
-    enumerable: true,
-    writable: false, // read-only
-    configurable: false,
-    value: require('../package.json').version
-});
-
-Base.prototype.versionAtLeast = function(neededVersion) {
-    var neededParts = neededVersion.split('.').map(Number),
-        delta = this.version.split('.').map(function(part, i) { return Number(part) - neededParts[i]; });
-    return (
-        delta[0] > 0 ||
-        delta[0] === 0 && (
-            delta[1] > 0 ||
-            delta[1] === 0 && delta[2] >= 0
-        )
-    );
-};
-
 Base.prototype.deprecated = require('./lib/deprecated');
 Base.prototype.HypergridError = require('./lib/error');
 
