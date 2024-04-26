@@ -21,7 +21,7 @@ var Localization = require('../lib/Localization');
 var Behavior = require('../behaviors/Behavior');
 var behaviorJSON = require('../behaviors/Local');
 var cellRenderers = require('../cellRenderers');
-var modules = require('./modules');
+import modules from './modules';
 
 var EDGE_STYLES = ['top', 'bottom', 'left', 'right'],
     RECT_STYLES = EDGE_STYLES.concat(['width', 'height', 'position']);
