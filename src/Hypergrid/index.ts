@@ -5,6 +5,7 @@
 require('../lib/polyfills'); // Installs misc. polyfills into global objects, as needed
 
 import { CellEditors } from "../cellEditors";
+import { HypergridCanvas as Canvas } from "../lib/Canvas2TS";
 
 var Point = require('rectangular').Point;
 var Rectangle = require('rectangular').Rectangle;
@@ -14,7 +15,6 @@ var injectCSS = require('inject-stylesheet-template').bind(require('../../css'))
 var Base = require('../Base');
 var defaults = require('../defaults');
 var dynamicPropertyDescriptors = require('../lib/dynamicProperties');
-var Canvas = require('../lib/Canvas');
 var Renderer = require('../renderer');
 var SelectionModel = require('../lib/SelectionModel');
 var Localization = require('../lib/Localization');

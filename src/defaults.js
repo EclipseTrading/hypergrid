@@ -1498,7 +1498,8 @@ var defaults = {
         'cellclick',
         'cellediting',
         'onhover',
-        'touchscrolling'
+        'touchscrolling',
+        'drop'
     ],
 
     /** @summary Restore row selections across data transformations (`reindex` calls).

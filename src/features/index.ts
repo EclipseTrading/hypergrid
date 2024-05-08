@@ -2,6 +2,8 @@
 import { CellEditing } from "./CellEditing";
 import { ColumnMoving } from "./ColumnMoving"
 import { ColumnResizing } from "./ColumnResizing";
+import { Drop } from "./Drop";
+import { Drag } from "./Drag";
 import { OnHover } from "./OnHover";
 var Registry = require('../lib/Registry');
 
@@ -27,6 +29,8 @@ var Features = Registry.extend('Features', {
         this.add(Features.Filters);
         this.add(Features.KeyPaging);
         this.add(OnHover);
+        this.add(Drop);
+        this.add(Drag);
         this.add(Features.RowSelection);
         this.add(Features.ThumbwheelScrolling);
         this.add(Features.TouchScrolling);

@@ -173,6 +173,36 @@ var Feature: IFeature = Base.extend('Feature', {
         }
     },
 
+    handleDrop: function(grid, event) {
+        if (this.next) {
+            this.next.handleDrop(grid, event);
+        }
+    },
+
+    handleDocumentDrag: function(grid, event) {
+        if (this.next) {
+            this.next.handleDocumentDrag(grid, event);
+        }
+    },
+
+    handleDocumentDragStart: function(grid, event) {
+        if (this.next) {
+            this.next.handleDocumentDragStart(grid, event);
+        }
+    },
+
+    handleDocumentDragOver: function(grid, event) {
+        if (this.next) {
+            this.next.handleDocumentDragOver(grid, event);
+        }
+    },
+
+    handleDocumentDragEnd: function(grid, event) {
+        if (this.next) {
+            this.next.handleDocumentDragEnd(grid, event);
+        }
+    },
+
     /**
      * @memberOf Feature.prototype
      * @param {Hypergrid} grid

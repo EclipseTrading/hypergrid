@@ -73,6 +73,36 @@ export class FeatureBase implements IFeature {
         }
     }
 
+    handleDrop(grid, event) {
+        if (this.next) {
+            this.next.handleDrop(grid, event);
+        }
+    }
+
+    handleDocumentDrag(grid: any, event: any): void {
+        if (this.next) {
+            this.next.handleDocumentDrag(grid, event);
+        }
+    }
+
+    handleDocumentDragStart(grid: any, event: any): void {
+        if (this.next) {
+            this.next.handleDocumentDragStart(grid, event);
+        }
+    }
+
+    handleDocumentDragOver(grid: any, event: any): void {
+        if (this.next) {
+            this.next.handleDocumentDragOver(grid, event);
+        }
+    }
+
+    handleDocumentDragEnd(grid: any, event: any): void {
+        if (this.next) {
+            this.next.handleDocumentDragEnd(grid, event);
+        }
+    }
+
     handleWheelMoved(grid, event) {
         if (this.next) {
             this.next.handleWheelMoved(grid, event);
