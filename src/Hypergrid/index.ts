@@ -5,7 +5,7 @@
 require('../lib/polyfills'); // Installs misc. polyfills into global objects, as needed
 
 import { CellEditors } from "../cellEditors";
-import { HypergridCanvas as Canvas } from "../lib/Canvas2TS";
+import { HypergridCanvas as Canvas } from "../lib/Canvas";
 
 var Point = require('rectangular').Point;
 var Rectangle = require('rectangular').Rectangle;

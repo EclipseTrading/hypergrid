@@ -321,19 +321,19 @@ exports.mixin = {
     },
 
     fireSyntheticDocumentDragEvent: function(dragEvent) {
-        return dispatchGridEvent.call(this, 'fin-grid-drag', {}, dragEvent);
+        return dispatchGridEvent.call(this, 'fin-grid-drag', {}, dragEvent.detail.primitiveEvent);
     },
 
     fireSyntheticDocumentDragStartEvent: function(dragStartEvent) {
-        return dispatchGridEvent.call(this, 'fin-grid-drag-start', {}, dragStartEvent);
+        return dispatchGridEvent.call(this, 'fin-grid-drag-start', {}, dragStartEvent.detail.primitiveEvent);
     },
 
     fireSyntheticDocumentDragOverEvent: function(dragOverEvent) {
-        return dispatchGridEvent.call(this, 'fin-grid-drag-over', {}, dragOverEvent);
+        return dispatchGridEvent.call(this, 'fin-grid-drag-over', {}, dragOverEvent.detail.primitiveEvent);
     },
 
     fireSyntheticDocumentDragEndEvent: function(dragEndEvent) {
-        return dispatchGridEvent.call(this, 'fin-grid-drag-end', {}, dragEndEvent);
+        return dispatchGridEvent.call(this, 'fin-grid-drag-end', {}, dragEndEvent.detail.primitiveEvent);
     },
 
     /**

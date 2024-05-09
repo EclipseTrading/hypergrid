@@ -119,7 +119,6 @@ export class HypergridCanvas implements Paintable, Resizable {
             this.findrop(e);
         });
         document.addEventListener('dragstart', (e: DragEvent) => {
-            console.log("Document Drag start")
             this.findocumentdragstart(e);
         });
         document.addEventListener('drag', (e: DragEvent) => {
@@ -438,7 +437,7 @@ export class HypergridCanvas implements Paintable, Resizable {
         return this.dispatchNewEvent(primitiveEvent, name, detail);
     }
 
-    private dispatchTestNewEvent(primitiveEvent: any, name: string, detail: Record<string, any> = {}): boolean {
+    private dispatchNewDragEvent(primitiveEvent: any, name: string, detail: Record<string, any> = {}): boolean {
         this.mouseLocation = this.getLocal(primitiveEvent);
         defKeysProp.call(this, primitiveEvent, 'keys', { mouse: this.mouseLocation });
         return this.dispatchEvent(this.newEvent(primitiveEvent, name, { mouse: this.mouseLocation }))
@@ -651,19 +650,19 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     private findocumentdragstart(e: DragEvent): void {
-        this.dispatchNewEvent(e, 'fin-document-drag-start');
+        this.dispatchNewDragEvent(e, 'fin-document-drag-start');
     }
 
     private findocumentdrag(e: DragEvent): void {
-        this.dispatchNewEvent(e, 'fin-document-drag');
+        this.dispatchNewDragEvent(e, 'fin-document-drag');
     }
 
     private findocumentdragover(e: DragEvent): void {
-        this.dispatchTestNewEvent(e, 'fin-document-drag-over');
+        this.dispatchNewDragEvent(e, 'fin-document-drag-over');
     }
 
     private findocumentdragend(e: DragEvent): void {
-        this.dispatchTestNewEvent(e, 'fin-document-drag-end');
+        this.dispatchNewDragEvent(e, 'fin-document-drag-end');
     }
 
     private finfocusgained(e: FocusEvent): void {

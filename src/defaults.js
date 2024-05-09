@@ -1499,7 +1499,7 @@ var defaults = {
         'cellediting',
         'onhover',
         'touchscrolling',
-        'drop'
+        'drag'
     ],
 
     /** @summary Restore row selections across data transformations (`reindex` calls).

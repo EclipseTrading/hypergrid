@@ -6,6 +6,7 @@ export class DragDropManager {
         private canvas: HTMLCanvasElement,
         private dragImage: HTMLElement) {
         this.canvas.addEventListener('dragstart', (e: DragEvent) => this.dragStart(e));
+        this.canvas.addEventListener('dragover', (e: DragEvent) => e.preventDefault());
     }
 
     public beDragging(ctrlKey: boolean): void {
@@ -39,8 +40,4 @@ export class DragDropManager {
         var style = document.body.style;
         style.cssText = style.cssText.replace('-webkit-user-select: none', '');
     }
-
-
-
-
 }
