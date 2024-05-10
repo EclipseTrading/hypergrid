@@ -316,6 +316,26 @@ exports.mixin = {
         return dispatchGridEvent.call(this, 'fin-keyup', keyEvent.detail);
     },
 
+    fireSyntheticDropEvent: function(dropEvent) {
+        return dispatchGridEvent.call(this, 'fin-drop', dropEvent);
+    },
+
+    fireSyntheticDocumentDragEvent: function(dragEvent) {
+        return dispatchGridEvent.call(this, 'fin-grid-drag', {}, dragEvent.detail.primitiveEvent);
+    },
+
+    fireSyntheticDocumentDragStartEvent: function(dragStartEvent) {
+        return dispatchGridEvent.call(this, 'fin-grid-drag-start', {}, dragStartEvent.detail.primitiveEvent);
+    },
+
+    fireSyntheticDocumentDragOverEvent: function(dragOverEvent) {
+        return dispatchGridEvent.call(this, 'fin-grid-drag-over', {}, dragOverEvent.detail.primitiveEvent);
+    },
+
+    fireSyntheticDocumentDragEndEvent: function(dragEndEvent) {
+        return dispatchGridEvent.call(this, 'fin-grid-drag-end', {}, dragEndEvent.detail.primitiveEvent);
+    },
+
     /**
      * @memberOf Hypergrid#
      * @desc Synthesize and fire a fin-filter-applied event.
@@ -624,7 +644,7 @@ exports.mixin = {
             });
         });
 
-        this.addInternalEventListener('fin-canvas-drag', function(e) {
+        this.addInternalEventListener('fin-canvas-mouse-drag', function(e) {
             if (grid.properties.readOnly) {
                 return;
             }
@@ -646,6 +666,46 @@ exports.mixin = {
             }
             grid.fireSyntheticKeyupEvent(e);
             grid.delegateKeyUp(e);
+        });
+
+        this.addInternalEventListener('fin-canvas-drop', function(e) {
+            if (grid.properties.readOnly) {
+                return;
+            }
+            grid.fireSyntheticDropEvent(e);
+            grid.delegateDrop(e);
+        });
+
+        this.addInternalEventListener('fin-document-drag', function(e) {
+            if (grid.properties.readOnly) {
+                return;
+            }
+            grid.fireSyntheticDocumentDragEvent(e);
+            grid.delegateDocumentDrag(e);
+        });
+
+        this.addInternalEventListener('fin-document-drag-start', function(e) {
+            if (grid.properties.readOnly) {
+                return;
+            }
+            grid.fireSyntheticDocumentDragStartEvent(e);
+            grid.delegateDocumentDragStart(e);
+        });
+
+        this.addInternalEventListener('fin-document-drag-over', function(e) {
+            if (grid.properties.readOnly) {
+                return;
+            }
+            grid.fireSyntheticDocumentDragOverEvent(e);
+            grid.delegateDocumentDragOver(e);
+        });
+
+        this.addInternalEventListener('fin-document-drag-end', function(e) {
+            if (grid.properties.readOnly) {
+                return;
+            }
+            grid.fireSyntheticDocumentDragEndEvent(e);
+            grid.delegateDocumentDragEnd(e);
         });
 
         this.addInternalEventListener('fin-canvas-wheelmoved', function(e) {
@@ -786,6 +846,25 @@ exports.mixin = {
      */
     delegateKeyUp: function(event) {
         this.behavior.onKeyUp(this, event);
+    },
+
+    delegateDrop: function(event) {
+        this.behavior.onDrop(this, event);
+    },
+
+    delegateDocumentDrag: function(event) {
+        this.behavior.onDocumentDrag(this, event);
+    },
+    delegateDocumentDragStart: function(event) {
+        this.behavior.onDocumentDragStart(this, event);
+    },
+
+    delegateDocumentDragOver: function(event) {
+        this.behavior.onDocumentDragOver(this, event);
+    },
+
+    delegateDocumentDragEnd: function(event) {
+        this.behavior.onDocumentDragEnd(this, event);
     },
 
     /**

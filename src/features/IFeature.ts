@@ -19,6 +19,11 @@ export interface IFeature {
     handleMouseUp(grid, event): void
     handleKeyDown(grid, event): void
     handleKeyUp(grid, event): void
+    handleDrop(grid, event): void
+    handleDocumentDrag(grid, event): void
+    handleDocumentDragStart(grid, event): void
+    handleDocumentDragOver(grid, event): void
+    handleDocumentDragEnd(grid, event): void
     handleWheelMoved(grid, event): void
     handleDoubleClick(grid, event): void
     handleClick(grid, event): void

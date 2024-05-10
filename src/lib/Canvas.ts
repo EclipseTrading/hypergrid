@@ -1,9 +1,10 @@
 /* eslint-env browser */
-
+import { Point, Rectangle } from 'rectangular';
+import { DragDropManager } from './DragDropManager';
 
 if (typeof window.CustomEvent !== 'function') {
     // @ts-ignore
-    window.CustomEvent = function(event, params) {
+    window.CustomEvent = function (event, params) {
         params = params || { bubbles: false, cancelable: false, detail: undefined };
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
@@ -14,14 +15,12 @@ if (typeof window.CustomEvent !== 'function') {
     window.CustomEvent.prototype = window.Event.prototype;
 }
 
-var rectangular = require('rectangular');
-
-var RESIZE_POLLING_INTERVAL = 200,
-    paintables = [],
-    resizables = [],
-    paintRequest,
-    resizeInterval,
-    charMap = makeCharMap();
+var RESIZE_POLLING_INTERVAL: number = 200
+var paintables: Paintable[] = []
+var resizables: Resizable[] = []
+var paintRequest: number | undefined = undefined
+var resizeInterval: any
+var charMap: string[][] = makeCharMap();
 
 // We still support IE 11; we do NOT support older versions of IE (and we do NOT officially support Edge)
 // https://stackoverflow.com/questions/21825157/internet-explorer-11-detection#answer-21825207
@@ -34,170 +33,181 @@ var isIE11 = !!(window.MSInputMethodContext && document.documentMode);
  * @param {any} contextAttributes
  * @this {any} TODO
  */
-function Canvas(div, component, contextAttributes) {
-    var self = this;
 
-    // create the containing <div>...</div>
-    this.div = div;
-    this.component = component;
-
-    this.dragEndtime = Date.now();
-
-    // create and append the info <div>...</div> (to be displayed when there are no data rows)
-    this.infoDiv = document.createElement('div');
-    this.infoDiv.className = 'info';
-    this.div.appendChild(this.infoDiv);
-
-    // create and append the canvas
-    this.gc = getCachedContext(this.canvas = document.createElement('canvas'), contextAttributes);
-
-    this.div.appendChild(this.canvas);
-
-    this.canvas.style.outline = 'none';
-
-    this.mouseLocation = new rectangular.Point(-1, -1);
-    this.dragstart = new rectangular.Point(-1, -1);
-    //this.origin = new rectangular.Point(0, 0);
-    this.bounds = new rectangular.Rectangle(0, 0, 0, 0);
-    this.hasMouse = false;
-
-    document.addEventListener('mousemove', function(e) {
-        if (self.hasMouse || self.isDragging()) {
-            self.finmousemove(e);
-        }
-    });
-    document.addEventListener('mouseup', function(e) {
-        self.finmouseup(e);
-    });
-    document.addEventListener('wheel', function(e) {
-        self.finwheelmoved(e);
-    });
-    document.addEventListener('keydown', function(e) {
-        self.finkeydown(e);
-    });
-    document.addEventListener('keyup', function(e) {
-        self.finkeyup(e);
-    });
-
-    this.canvas.onmouseover = function() {
-        self.hasMouse = true;
-    };
-    this.addEventListener('focus', function(e) {
-        self.finfocusgained(e);
-    });
-    this.addEventListener('blur', function(e) {
-        self.finfocuslost(e);
-    });
-    this.addEventListener('mousedown', function(e) {
-        self.finmousedown(e);
-    });
-    this.addEventListener('mouseout', function(e) {
-        self.hasMouse = false;
-        self.finmouseout(e);
-    });
-    this.addEventListener('click', function(e) {
-        self.finclick(e);
-    });
-    this.addEventListener('dblclick', function(e) {
-        self.findblclick(e);
-    });
-    this.addEventListener('contextmenu', function(e) {
-        self.fincontextmenu(e);
-        e.preventDefault();
-        return false;
-    });
-
-    this.addEventListener('touchstart', function(e) {
-        self.fintouchstart(e);
-    });
-
-    this.addEventListener('touchmove', function(e) {
-        self.fintouchmove(e);
-    });
-
-    this.addEventListener('touchend', function(e) {
-        self.fintouchend(e);
-    });
-
-    this.canvas.setAttribute('tabindex', 0);
-
-    this.resetZoom();
-
-    this.resize();
-
-    this.beginResizing();
-    this.beginPainting();
+type Paintable = {
+    component: any,
+    tickPainter: (time: number) => void
 }
 
-/**
- * @typedef {any} CanvasType TODO need to formalise this
- * @this {CanvasType}
- */
-Canvas.prototype = {
-    constructor: Canvas.prototype.constructor,
-    div: null,
-    component: null,
-    canvas: null,
-    focuser: null,
-    buffer: null,
-    ctx: null,
-    mouseLocation: null,
-    dragstart: null,
-    origin: null,
-    bounds: null,
-    dirty: false,
-    size: null,
-    mousedown: false,
-    dragging: false,
-    repeatKeyCount: 0,
-    repeatKey: null,
-    repeatKeyStartTime: 0,
-    currentKeys: [],
-    hasMouse: false,
-    dragEndTime: 0,
-    lastRepaintTime: 0,
-    currentPaintCount: 0,
-    currentFPS: 0,
-    lastFPSComputeTime: 0,
+type Resizable = {
+    tickResizer: (time: number) => void
+}
 
-    /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
-     * @this CanvasType
-     */
-    addEventListener: function(name, callback) {
+export class HypergridCanvas implements Paintable, Resizable {
+    public static graphicsContextAliases = {
+        simpleText: 'fillText'
+    };
+
+    public canvas: HTMLCanvasElement;
+
+    public mouseLocation: Point = new Point(-1, -1);
+    public hasMouse: boolean = false;
+    public currentFPS: number = 0;
+    public devicePixelRatio: number = 1;
+    public tickPainter: (time: number) => void;
+    public tickResizer: (time: number) => void;
+
+    private gc: any;
+    private infoDiv: HTMLDivElement;
+    private bounds: Rectangle = new Rectangle(0, 0, 0, 0);
+
+    private lastRepaintTime: number = 0;
+    private dirty: boolean = false;
+    private currentPaintCount: number = 0;
+    private lastFPSComputeTime: number = 0;
+    private bodyZoomFactor: number = 1;
+
+    private size: Rectangle = new Rectangle(0, 0, 0, 0);
+    private width: number;
+    private height: number;
+    private focuser?: HTMLElement = undefined;
+    private mousedown: boolean = false;
+    private repeatKeyCount: number = 0;
+    private repeatKey: string | null = null;
+    private repeatKeyStartTime: number = 0;
+    private currentKeys: string[] = [];
+
+    private dragstart: Point = new Point(-1, -1);
+    private dragDropManager: DragDropManager
+
+    constructor(public div: HTMLDivElement, public component: any, contextAttributes: any) {
+        // create and append the info <div>...</div> (to be displayed when there are no data rows)
+        this.infoDiv = document.createElement('div');
+        this.infoDiv.className = 'info';
+
+        this.div.appendChild(this.infoDiv);
+
+        this.canvas = document.createElement('canvas')
+        this.canvas.style.outline = 'none';
+        this.canvas.draggable = false;
+
+        const dragImage = document.createElement('div');
+        this.div.appendChild(dragImage)
+        this.dragDropManager = new DragDropManager(this.canvas, dragImage);
+
+        this.gc = getCachedContext(this.canvas, contextAttributes);
+        this.div.appendChild(this.canvas);
+
+        document.addEventListener('mousemove', (e: MouseEvent) => {
+            if (this.hasMouse || this.dragDropManager.isDragging()) {
+                this.finmousemove(e);
+            }
+        });
+        document.addEventListener('mouseup', (e: MouseEvent) => {
+            this.finmouseup(e);
+        });
+        document.addEventListener('wheel', (e: WheelEvent) => {
+            this.finwheelmoved(e);
+        });
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
+            this.finkeydown(e);
+        });
+        document.addEventListener('keyup', (e: KeyboardEvent) => {
+            this.finkeyup(e);
+        });
+        document.addEventListener('drop', (e: DragEvent) => {
+            this.findrop(e);
+        });
+        document.addEventListener('dragstart', (e: DragEvent) => {
+            this.findocumentdragstart(e);
+        });
+        document.addEventListener('drag', (e: DragEvent) => {
+            this.findocumentdrag(e);
+        });
+        document.addEventListener('dragover', (e: DragEvent) => {
+            this.findocumentdragover(e);
+        });
+        document.addEventListener('dragend', (e: DragEvent) => {
+            this.findocumentdragend(e);
+        });
+        this.addEventListener('mouseover', () => {
+            this.hasMouse = true;
+        })
+        this.addEventListener('focus', (e: FocusEvent) => {
+            this.finfocusgained(e);
+        });
+        this.addEventListener('blur', (e: FocusEvent) => {
+            this.finfocuslost(e);
+        });
+        this.addEventListener('mousedown', (e: MouseEvent) => {
+            this.finmousedown(e);
+        });
+        this.addEventListener('mouseout', (e: MouseEvent) => {
+            this.hasMouse = false;
+            this.finmouseout(e);
+        });
+        this.addEventListener('click', (e: MouseEvent) => {
+            this.finclick(e);
+        });
+        this.addEventListener('dblclick', (e: MouseEvent) => {
+            this.findblclick(e);
+        });
+        this.addEventListener('contextmenu', (e: MouseEvent) => {
+            this.fincontextmenu(e);
+            e.preventDefault();
+            return false;
+        });
+        this.addEventListener('touchstart', (e: TouchEvent) => {
+            this.fintouchstart(e);
+        });
+        this.addEventListener('touchmove', (e: TouchEvent) => {
+            this.fintouchmove(e);
+        });
+
+        this.addEventListener('touchend', (e: TouchEvent) => {
+            this.fintouchend(e);
+        });
+
+        this.canvas.setAttribute('tabindex', '0');
+        this.canvas.onclick
+
+        this.resetZoom();
+
+        this.resize();
+
+        this.beginResizing();
+        this.beginPainting();
+    }
+
+    public addEventListener(name: string, callback: EventListenerOrEventListenerObject): void {
         this.canvas.addEventListener(name, callback);
-    },
+    }
 
-    /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
-     * @this CanvasType
-     */
-    removeEventListener: function(name, callback) {
+    public removeEventListener(name: string, callback: EventListenerOrEventListenerObject): void {
         this.canvas.removeEventListener(name, callback);
-    },
+    }
 
-    stopPaintLoop: stopPaintLoop,
-    restartPaintLoop: restartPaintLoop,
+    public stopPaintLoop = () => stopPaintLoop();
 
-    stopResizeLoop: stopResizeLoop,
-    restartResizeLoop: restartResizeLoop,
+    public restartPaintLoop = () => restartPaintLoop();
 
-    detached: function() {
-        this.stopPainting();
-        this.stopResizing();
-    },
+    public stopResizeLoop = () => stopResizeLoop();
 
-    getCurrentFPS:function() {
-        return this.currentFPS;
-    },
+    public restartResizeLoop = () => restartResizeLoop();
 
-    /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
-     * @this CanvasType
-     */
-    tickPaint: function(now) {
-        var isContinuousRepaint = this.component.properties.enableContinuousRepaint,
-            fps = this.component.properties.repaintIntervalRate;
+    public detached(): void {
+        this.stopPainting()
+        this.stopResizing()
+    }
+
+    public getCurrentFPS(): number {
+        return this.currentFPS
+    }
+
+    public tickPaint(now: number): void {
+        var isContinuousRepaint = this.component.properties.enableContinuousRepaint
+        var fps = this.component.properties.repaintIntervalRate
+
         if (fps === 0) {
             return;
         }
@@ -217,56 +227,42 @@ Canvas.prototype = {
                 }
             }
         }
-    },
+    }
 
-    /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
-     * @this CanvasType
-     */
-    beginPainting: function() {
-        var self = this;
+    public beginPainting(): void {
         this.requestRepaint();
-        this.tickPainter = function(now) {
-            self.tickPaint(now);
+        this.tickPainter = (now) => {
+            this.tickPaint(now);
         };
         paintables.push(this);
-    },
+    }
 
-    stopPainting: function() {
+    public stopPainting(): void {
         paintables.splice(paintables.indexOf(this), 1);
-    },
+    }
 
-    /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
-     * @this CanvasType
-     */
-    beginResizing: function() {
-        var self = this;
-        this.tickResizer = function() {
-            self.checksize();
+    public beginResizing(): void {
+        this.tickResizer = () => {
+            this.checksize();
         };
         resizables.push(this);
-    },
+    }
 
-    stopResizing: function() {
+    public stopResizing(): void {
         resizables.splice(resizables.indexOf(this), 1);
-    },
+    }
 
-    start: function() {
+    public start(): void {
         this.beginPainting();
         this.beginResizing();
-    },
+    }
 
-    stop: function() {
+    public stop(): void {
         this.stopPainting();
         this.stopResizing();
-    },
+    }
 
-    /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
-     * @this CanvasType
-     */
-    getBoundingClientRect: function(el) {
+    public getBoundingClientRect(el: any): Rectangle {
         var rect = el.getBoundingClientRect();
 
         if (isIE11) {
@@ -289,9 +285,9 @@ Canvas.prototype = {
         }
 
         return rect;
-    },
+    }
 
-    getDivBoundingClientRect: function() {
+    public getDivBoundingClientRect(): Rectangle {
         // Make sure our canvas has integral dimensions
         var rect = this.getBoundingClientRect(this.div);
         var top = Math.floor(rect.top),
@@ -309,24 +305,16 @@ Canvas.prototype = {
             x: rect.x,
             y: rect.y
         };
-    },
+    }
 
-    /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
-     * @this CanvasType
-     */
-    checksize: function() {
+    public checksize(): void {
         var sizeNow = this.getDivBoundingClientRect();
         if (sizeNow.width !== this.size.width || sizeNow.height !== this.size.height) {
             this.resize(sizeNow);
         }
-    },
+    }
 
-    /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
-     * @this CanvasType
-     */
-    resize: function(box) {
+    public resize(box: Rectangle | undefined = undefined): void {
         box = this.size = box || this.getDivBoundingClientRect();
 
         this.width = box.width;
@@ -346,28 +334,28 @@ Canvas.prototype = {
 
         this.gc.scale(ratio, ratio);
 
-        this.bounds = new rectangular.Rectangle(0, 0, this.width, this.height);
+        this.bounds = new Rectangle(0, 0, this.width, this.height);
         this.component.setBounds(this.bounds);
         this.resizeNotification();
         this.paintNow();
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    resizeNotification: function() {
+    private resizeNotification(): void {
         this.dispatchNewEvent(undefined, 'fin-canvas-resized', {
             width: this.width,
             height: this.height
         });
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    resetZoom: function() {
+    public resetZoom(): void {
         var factor = 1;
 
         // IE11 bug: must use getPropertyValue because zoom is omitted from returned object
@@ -387,19 +375,18 @@ Canvas.prototype = {
         }
 
         this.bodyZoomFactor = factor;
-
         this.resize();
-    },
+    }
 
-    getBounds: function() {
+    public getBounds(): void {
         return this.bounds;
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    paintNow: function() {
+    public paintNow(): void {
         try {
             this.gc.cache.save();
             this.dirty = false;
@@ -409,12 +396,12 @@ Canvas.prototype = {
         } finally {
             this.gc.cache.restore();
         }
-    },
+    }
 
     // flushBuffer deprecated in 3.3.0
-    flushBuffer: function() {},
+    private flushBuffer(): void { }
 
-    newEvent: function(primitiveEvent, name, detail) {
+    public newEvent(primitiveEvent: any, name: string, detail: Record<string, any>): CustomEvent {
         var event = {
             detail: detail || {}
         };
@@ -422,50 +409,56 @@ Canvas.prototype = {
             event.detail.primitiveEvent = primitiveEvent;
         }
         return new CustomEvent(name, event);
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    dispatchNewEvent: function(primitiveEvent, name, detail) {
-        return this.canvas.dispatchEvent(this.newEvent(primitiveEvent, name, detail));
-    },
+    private dispatchNewEvent(primitiveEvent: any, name: string, detail: Record<string, any> = {}): boolean {
+        return this.dispatchEvent(this.newEvent(primitiveEvent, name, detail))
+    }
 
-    dispatchNewMouseKeysEvent: function(event, name, detail) {
+    private dispatchNewMouseKeysEvent(primitiveEvent: any, name: string, detail: Record<string, any> = {}): boolean {
         detail = detail || {};
         detail.mouse = this.mouseLocation;
-        defKeysProp.call(this, event, 'keys', detail);
-        return this.dispatchNewEvent(event, name, detail);
-    },
+        defKeysProp.call(this, primitiveEvent, 'keys', detail);
+        return this.dispatchNewEvent(primitiveEvent, name, detail);
+    }
 
-    dispatchNewTouchEvent: function(event, name, detail) {
+    private dispatchNewTouchEvent(primitiveEvent: any, name: string, detail: Record<string, any> = {}): boolean {
         detail = detail || {};
 
-        var touches = [].slice.call(event.changedTouches);
-        detail.touches = touches.map(function(touch) {
+        var touches = [].slice.call(primitiveEvent.changedTouches);
+        detail.touches = touches.map((touch) => {
             return this.getLocal(touch);
         }, this);
 
-        return this.dispatchNewEvent(event, name, detail);
-    },
+        return this.dispatchNewEvent(primitiveEvent, name, detail);
+    }
+
+    private dispatchNewDragEvent(primitiveEvent: any, name: string, detail: Record<string, any> = {}): boolean {
+        this.mouseLocation = this.getLocal(primitiveEvent);
+        defKeysProp.call(this, primitiveEvent, 'keys', { mouse: this.mouseLocation });
+        return this.dispatchEvent(this.newEvent(primitiveEvent, name, { mouse: this.mouseLocation }))
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    finmousemove: function(e) {
-        if (!this.isDragging() && this.mousedown) {
-            this.beDragging();
-            this.dispatchNewMouseKeysEvent(e, 'fin-canvas-dragstart', {
+    private finmousemove(e: MouseEvent): void {
+        if (!this.dragDropManager.isDragging() && this.mousedown) {
+            this.dragDropManager.beDragging(e.ctrlKey);
+            this.dispatchNewMouseKeysEvent(e, 'fin-canvas-mouse-dragstart', {
                 isRightClick: this.isRightClick(e),
                 dragstart: this.dragstart
             });
-            this.dragstart = new rectangular.Point(this.mouseLocation.x, this.mouseLocation.y);
+            this.dragstart = new Point(this.mouseLocation.x, this.mouseLocation.y);
         }
         this.mouseLocation = this.getLocal(e);
-        if (this.isDragging()) {
-            this.dispatchNewMouseKeysEvent(e, 'fin-canvas-drag', {
+        if (this.dragDropManager.isDragging()) {
+            this.dispatchNewMouseKeysEvent(e, 'fin-canvas-mouse-drag', {
                 dragstart: this.dragstart,
                 isRightClick: this.isRightClick(e)
             });
@@ -473,38 +466,37 @@ Canvas.prototype = {
         if (this.bounds.contains(this.mouseLocation)) {
             this.dispatchNewMouseKeysEvent(e, 'fin-canvas-mousemove');
         }
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    finmousedown: function(e) {
-        this.mouseLocation = this.mouseDownLocation = this.getLocal(e);
+    private finmousedown(e: MouseEvent): void {
+        this.mouseLocation = this.getLocal(e);
         this.mousedown = true;
 
         this.dispatchNewMouseKeysEvent(e, 'fin-canvas-mousedown', {
             isRightClick: this.isRightClick(e)
         });
         this.takeFocus();
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    finmouseup: function(e) {
+    private finmouseup(e: MouseEvent): void {
         if (!this.mousedown) {
             // ignore document:mouseup unless preceded by a canvas:mousedown
             return;
         }
-        if (this.isDragging()) {
-            this.dispatchNewMouseKeysEvent(e, 'fin-canvas-dragend', {
+        if (this.dragDropManager.isDragging()) {
+            this.dispatchNewMouseKeysEvent(e, 'fin-canvas-mouse-dragend', {
                 dragstart: this.dragstart,
                 isRightClick: this.isRightClick(e)
             });
-            this.beNotDragging();
-            this.dragEndtime = Date.now();
+            this.dragDropManager.beNotDragging();
         }
         this.mousedown = false;
         this.dispatchNewMouseKeysEvent(e, 'fin-canvas-mouseup', {
@@ -512,63 +504,63 @@ Canvas.prototype = {
             isRightClick: this.isRightClick(e)
         });
         //this.mouseLocation = new rectangular.Point(-1, -1);
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    finmouseout: function(e) {
+    private finmouseout(e: MouseEvent): void {
         if (!this.mousedown) {
-            this.mouseLocation = new rectangular.Point(-1, -1);
+            this.mouseLocation = new Point(-1, -1);
         }
         this.repaint();
         this.dispatchNewMouseKeysEvent(e, 'fin-canvas-mouseout', {
             dragstart: this.dragstart
         });
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    finwheelmoved: function(e) {
-        if (this.isDragging() || !this.hasFocus()) {
+    private finwheelmoved(e: WheelEvent): void {
+        if (this.dragDropManager.isDragging() || !this.hasFocus()) {
             return;
         }
         e.preventDefault();
         this.dispatchNewMouseKeysEvent(e, 'fin-canvas-wheelmoved', {
             isRightClick: this.isRightClick(e)
         });
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    finclick: function(e) {
+    private finclick(e: MouseEvent): void {
         this.mouseLocation = this.getLocal(e);
         this.dispatchNewMouseKeysEvent(e, 'fin-canvas-click', {
             isRightClick: this.isRightClick(e)
         });
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    findblclick: function(e) {
+    private findblclick(e: MouseEvent): void {
         this.mouseLocation = this.getLocal(e);
         this.dispatchNewMouseKeysEvent(e, 'fin-canvas-dblclick', {
             isRightClick: this.isRightClick(e)
         });
-    },
+    }
 
-    getCharMap: function() {
+    public getCharMap(): string[][] {
         return charMap;
-    },
+    }
 
-    getKeyChar: function(e) {
+    public getKeyChar(e: any): string {
         var keyCode = e.keyCode || e.detail.key,
             shift = e.shiftKey || e.detail.shift,
             key = e.key;
@@ -583,13 +575,13 @@ Canvas.prototype = {
             e.legacyKey || // legacy unprintable char string
             key // modern unprintable char string when no such legacy string
         );
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    finkeydown: function(e) {
+    private finkeydown(e: KeyboardEvent): void {
         if (!this.hasFocus()) {
             return;
         }
@@ -613,7 +605,7 @@ Canvas.prototype = {
             alt: e.altKey,
             ctrl: e.ctrlKey,
             char: keyChar,
-            legacyChar: e.legacyKey,
+            //legacyChar: e.legacyKey,
             code: e.charCode,
             key: e.keyCode,
             meta: e.metaKey,
@@ -622,13 +614,13 @@ Canvas.prototype = {
             shift: e.shiftKey,
             identifier: e.key
         }));
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    finkeyup: function(e) {
+    private finkeyup(e: KeyboardEvent): void {
         if (!this.hasFocus()) {
             return;
         }
@@ -642,7 +634,7 @@ Canvas.prototype = {
             alt: e.altKey,
             ctrl: e.ctrlKey,
             char: keyChar,
-            legacyChar: e.legacyKey,
+            //legacyChar: e.legacyKey,
             code: e.charCode,
             key: e.keyCode,
             meta: e.metaKey,
@@ -651,17 +643,37 @@ Canvas.prototype = {
             identifier: e.key,
             currentKeys: this.currentKeys.slice(0)
         }));
-    },
+    }
 
-    finfocusgained: function(e) {
+    private findrop(e: DragEvent): void {
+        this.dispatchNewEvent(e, 'fin-canvas-drop');
+    }
+
+    private findocumentdragstart(e: DragEvent): void {
+        this.dispatchNewDragEvent(e, 'fin-document-drag-start');
+    }
+
+    private findocumentdrag(e: DragEvent): void {
+        this.dispatchNewDragEvent(e, 'fin-document-drag');
+    }
+
+    private findocumentdragover(e: DragEvent): void {
+        this.dispatchNewDragEvent(e, 'fin-document-drag-over');
+    }
+
+    private findocumentdragend(e: DragEvent): void {
+        this.dispatchNewDragEvent(e, 'fin-document-drag-end');
+    }
+
+    private finfocusgained(e: FocusEvent): void {
         this.dispatchNewEvent(e, 'fin-canvas-focus-gained');
-    },
+    }
 
-    finfocuslost: function(e) {
+    private finfocuslost(e: FocusEvent): void {
         this.dispatchNewEvent(e, 'fin-canvas-focus-lost');
-    },
+    }
 
-    fincontextmenu: function(e) {
+    private fincontextmenu(e: MouseEvent): void {
         if (e.ctrlKey && this.currentKeys.indexOf('CTRL') === -1) {
             this.currentKeys.push('CTRL');
         }
@@ -669,126 +681,94 @@ Canvas.prototype = {
         this.dispatchNewMouseKeysEvent(e, 'fin-canvas-context-menu', {
             isRightClick: this.isRightClick(e)
         });
-    },
+    }
 
-    fintouchstart: function(e) {
+    private fintouchstart(e: TouchEvent): void {
         this.dispatchNewTouchEvent(e, 'fin-canvas-touchstart');
-    },
+    }
 
-    fintouchmove: function(e) {
+    private fintouchmove(e: TouchEvent): void {
         this.dispatchNewTouchEvent(e, 'fin-canvas-touchmove');
-    },
+    }
 
-    fintouchend: function(e) {
+    private fintouchend(e: TouchEvent): void {
         this.dispatchNewTouchEvent(e, 'fin-canvas-touchend');
-    },
+    }
 
-    paintLoopRunning: function() {
+    public paintLoopRunning(): boolean {
         return !!paintRequest;
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    requestRepaint: function() {
+    private requestRepaint(): void {
         this.dirty = true;
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    repaint: function() {
+    private repaint(): void {
         this.requestRepaint();
         if (!paintRequest || this.component.properties.repaintIntervalRate === 0) {
             this.paintNow();
         }
-    },
+    }
 
-    getMouseLocation: function() {
+    public getMouseLocation(): any {
         return this.mouseLocation;
-    },
+    }
 
-    getOrigin: function() {
+    private getOrigin(): any {
         var rect = this.getBoundingClientRect(this.canvas);
-        var p = new rectangular.Point(rect.left, rect.top);
+        var p = new Point(rect.left, rect.top);
         return p;
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    getLocal: function(e) {
+    private getLocal(e: any): Point {
         var rect = this.getBoundingClientRect(this.canvas);
 
-        var p = new rectangular.Point(
+        var p = new Point(
             e.clientX / this.bodyZoomFactor - rect.left,
             e.clientY / this.bodyZoomFactor - rect.top
         );
 
         return p;
-    },
+    }
 
-    hasFocus: function() {
+    public hasFocus(): boolean {
         return document.activeElement === this.canvas;
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    takeFocus: function() {
+    public takeFocus(): void {
         var self = this;
         if (!this.hasFocus()) {
-            setTimeout(function() {
+            setTimeout(function () {
                 self.canvas.focus();
             }, 10);
         }
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    beDragging: function() {
-        this.dragging = true;
-        this.disableDocumentElementSelection();
-    },
+    public setFocusable(truthy: boolean): void {
+        this.focuser!.style.display = truthy ? '' : 'none';
+    }
 
-    /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
-     * @this CanvasType
-     */
-    beNotDragging: function() {
-        this.dragging = false;
-        this.enableDocumentElementSelection();
-    },
-
-    isDragging: function() {
-        return this.dragging;
-    },
-
-    disableDocumentElementSelection: function() {
-        var style = document.body.style;
-        style.cssText = style.cssText + '-webkit-user-select: none';
-    },
-
-    enableDocumentElementSelection: function() {
-        var style = document.body.style;
-        style.cssText = style.cssText.replace('-webkit-user-select: none', '');
-    },
-
-    /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
-     * @this CanvasType
-     */
-    setFocusable: function(truthy) {
-        this.focuser.style.display = truthy ? '' : 'none';
-    },
-
-    isRightClick: function(e) {
+    public isRightClick(e: any): boolean | undefined {
         var isRightMB;
         e = e || window.event;
 
@@ -798,23 +778,25 @@ Canvas.prototype = {
             isRightMB = e.button === 2;
         }
         return isRightMB;
-    },
+    }
 
     /**
      * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
      * @this CanvasType
      */
-    dispatchEvent: function(e) {
+    public dispatchEvent(e: any): boolean {
         return this.canvas.dispatchEvent(e);
-    },
+    }
 
-    setInfo: function(message, width) {
+    public setInfo(message: string, width: number | string): void {
         if (message) {
             if (width !== undefined) {
                 if (width && !isNaN(Number(width))) {
                     width += 'px';
                 }
-                this.infoDiv.style.width = width;
+                if (typeof width === 'string') {
+                    this.infoDiv.style.width = width;
+                }
             }
 
             if (message.indexOf('<')) {
@@ -826,11 +808,12 @@ Canvas.prototype = {
 
         this.infoDiv.style.display = message ? 'block' : 'none';
     }
-};
 
-function paintLoopFunction(now) {
+}
+
+function paintLoopFunction(now: number) {
     if (paintRequest) {
-        paintables.forEach(function(paintable) {
+        paintables.forEach(function (paintable) {
             try {
                 paintable.tickPainter(now);
             } catch (e) {
@@ -855,7 +838,7 @@ function stopPaintLoop() {
 }
 restartPaintLoop();
 
-function resizablesLoopFunction(now) {
+function resizablesLoopFunction(now: number) {
     if (resizeInterval) {
         for (var i = 0; i < resizables.length; i++) {
             try {
@@ -877,7 +860,7 @@ function stopResizeLoop() {
 }
 restartResizeLoop();
 
-function makeCharMap() {
+function makeCharMap(): string[][] {
     var map = [];
 
     var empty = ['', ''];
@@ -973,7 +956,7 @@ function makeCharMap() {
     return map;
 }
 
-function updateCurrentKeys(e, keydown) {
+function updateCurrentKeys(e: any, keydown: any) {
     var keyChar = this.getKeyChar(e);
 
     // prevent TAB from moving focus off the canvas element
@@ -989,7 +972,7 @@ function updateCurrentKeys(e, keydown) {
     return keyChar;
 }
 
-function fixCurrentKeys(keyChar, keydown) {
+function fixCurrentKeys(keyChar: string, keydown: any) {
     var index = this.currentKeys.indexOf(keyChar);
 
     if (!keydown && index >= 0) {
@@ -999,8 +982,8 @@ function fixCurrentKeys(keyChar, keydown) {
     if (keyChar === 'SHIFT') {
         // on keydown, replace unshifted keys with shifted keys
         // on keyup, vice-versa
-        this.currentKeys.forEach(function(key, index, currentKeys) {
-            var pair = charMap.find(function(pair) {
+        this.currentKeys.forEach((key, index, currentKeys) => {
+            var pair = charMap.find(function (pair) {
                 return pair[keydown ? 0 : 1] === key;
             });
             if (pair) {
@@ -1014,13 +997,13 @@ function fixCurrentKeys(keyChar, keydown) {
     }
 }
 
-function defKeysProp(event, propName, object) {
+function defKeysProp(event: any, propName: string, object: any) {
     var canvas = this;
     Object.defineProperty(object, propName, {
         configurable: true,
         // @ts-ignore TODO this is a spelling mistake, need to check if it has any consequences when fixing
         ennumerable: true,
-        get: function() {
+        get: function () {
             var shiftKey;
             if ('shiftKey' in event) {
                 fixCurrentKeys.call(canvas, 'SHIFT', shiftKey = event.shiftKey);
@@ -1040,10 +1023,10 @@ function defKeysProp(event, propName, object) {
     return object;
 }
 
-function getCachedContext(canvasElement, contextAttributes) {
-    var gc = canvasElement.getContext('2d', contextAttributes),
-        props = {},
-        values = {};
+function getCachedContext(canvasElement: any, contextAttributes: any) {
+    var gc = canvasElement.getContext('2d', contextAttributes)
+    var props = {};
+    var values = {};
 
     // Stub out all the prototype members of the canvas 2D graphics context:
     Object.keys(Object.getPrototypeOf(gc)).forEach(makeStub);
@@ -1059,10 +1042,10 @@ function getCachedContext(canvasElement, contextAttributes) {
             typeof gc[key] !== 'function'
         ) {
             Object.defineProperty(props, key, {
-                get: function() {
+                get: function () {
                     return (values[key] = values[key] || gc[key]);
                 },
-                set: function(value) {
+                set: function (value) {
                     if (value !== values[key]) {
                         gc[key] = values[key] = value;
                     }
@@ -1073,28 +1056,21 @@ function getCachedContext(canvasElement, contextAttributes) {
 
     gc.cache = props;
 
-    gc.cache.save = function() {
+    gc.cache.save = function () {
         gc.save();
         values = Object.create(values);
     };
 
-    gc.cache.restore = function() {
+    gc.cache.restore = function () {
         gc.restore();
         values = Object.getPrototypeOf(values);
     };
 
     gc.conditionalsStack = [];
 
-    Object.getOwnPropertyNames(Canvas.graphicsContextAliases).forEach(function(alias) {
-        gc[alias] = gc[Canvas.graphicsContextAliases[alias]];
+    Object.getOwnPropertyNames(HypergridCanvas.graphicsContextAliases).forEach((alias) => {
+        gc[alias] = gc[HypergridCanvas.graphicsContextAliases[alias]];
     });
 
     return Object.assign(gc, require('./graphics'));
 }
-
-Canvas.graphicsContextAliases = {
-    simpleText: 'fillText'
-};
-
-
-module.exports = Canvas;

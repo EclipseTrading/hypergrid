@@ -633,7 +633,7 @@ var Behavior = Base.extend('Behavior', {
         args.push(-1); // Remove only; do not reinsert.
         this.showColumns.apply(this, args);
     },
-    removeColumn: function(columnIndex: number) {
+    removeColumn: function (columnIndex: number) {
         this.columns.splice(columnIndex, 1);
         this.changed();
     },
@@ -803,6 +803,39 @@ var Behavior = Base.extend('Behavior', {
     onKeyUp: function (grid, event) {
         if (this.featureChain) {
             this.featureChain.handleKeyUp(grid, event);
+            this.setCursor(grid);
+        }
+    },
+
+    onDrop: function (grid, event) {
+        if (this.featureChain) {
+            this.featureChain.handleDrop(grid, event);
+            this.setCursor(grid);
+        }
+    },
+
+    onDocumentDrag: function (grid, event) {
+        if (this.featureChain) {
+            this.featureChain.handleDocumentDrag(grid, event);
+        }
+    },
+
+    onDocumentDragStart: function (grid, event) {
+        if (this.featureChain) {
+            this.featureChain.handleDocumentDragStart(grid, event);
+        }
+    },
+
+    onDocumentDragOver: function (grid, event) {
+        if (this.featureChain) {
+            this.featureChain.handleDocumentDragOver(grid, event);
+            this.setCursor(grid);
+        }
+    },
+
+    onDocumentDragEnd: function (grid, event) {
+        if (this.featureChain) {
+            this.featureChain.handleDocumentDragEnd(grid, event);
             this.setCursor(grid);
         }
     },
