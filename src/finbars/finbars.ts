@@ -41,7 +41,7 @@ export class FinBar {
      * To suppress, delete `FinBar.normals` before instantiation or override this instance variable (with `1.0`) after instantiation.
      * @readonly
      */
-    normal = 1.0;
+    normal = getNormal() || 1.0;
 
     content: HTMLElement | undefined;
     container: HTMLElement | undefined;
@@ -863,10 +863,10 @@ const defaultNormals: WheelNormals = {
         moz: 35
     },
     win: {
-        webkit: 2.6,
+        webkit: 3,
         moz: 85,
-        ms: 2.9,
-        edge: 2
+        ms: 3,
+        edge: 3
     }
 };
 
