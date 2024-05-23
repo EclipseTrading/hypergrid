@@ -167,7 +167,6 @@ exports.mixin = {
             input: inputControl,
             keyEvent: keyEvent,
             char: this.canvas.getKeyChar(keyEvent),
-            legacyChar: keyEvent.legacyKey // decorated by getKeyChar
         });
     },
 
@@ -181,7 +180,6 @@ exports.mixin = {
             input: inputControl,
             keyEvent: keyEvent,
             char: this.canvas.getKeyChar(keyEvent),
-            legacyChar: keyEvent.legacyKey // decorated by getKeyChar
         });
     },
 
@@ -195,7 +193,6 @@ exports.mixin = {
             input: inputControl,
             keyEvent: keyEvent,
             char: this.canvas.getKeyChar(keyEvent),
-            legacyChar: keyEvent.legacyKey // decorated by getKeyChar
         });
     },
 

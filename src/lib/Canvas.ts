@@ -556,16 +556,10 @@ export class HypergridCanvas implements Paintable, Resizable {
         });
     }
 
-    public getCharMap(): string[][] {
-        return charMap;
-    }
-
     public getKeyChar(e: any): string {
         var keyCode = e.keyCode || e.detail.key,
             shift = e.shiftKey || e.detail.shift,
             key = e.key;
-
-        e.legacyKey = charMap[keyCode] && charMap[keyCode][shift ? 1 : 0];
 
         if (typeof key === 'string' && key.length === 1) {
             return key;
@@ -605,7 +599,6 @@ export class HypergridCanvas implements Paintable, Resizable {
             alt: e.altKey,
             ctrl: e.ctrlKey,
             char: keyChar,
-            //legacyChar: e.legacyKey,
             code: e.charCode,
             key: e.keyCode,
             meta: e.metaKey,
@@ -634,7 +627,6 @@ export class HypergridCanvas implements Paintable, Resizable {
             alt: e.altKey,
             ctrl: e.ctrlKey,
             char: keyChar,
-            //legacyChar: e.legacyKey,
             code: e.charCode,
             key: e.keyCode,
             meta: e.metaKey,
