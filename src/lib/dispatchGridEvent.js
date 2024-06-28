@@ -80,10 +80,12 @@ module.exports = function(eventName, cancelable, event, primitiveEvent) {
         }
         if ('mousePointInLeftClickRect' in primitiveEvent
             && 'mousePointInRightClickRect' in primitiveEvent
-            && 'mousePointInCenterClickRect' in primitiveEvent) {
+            && 'mousePointInCenterClickRect' in primitiveEvent
+            && 'mousePointInButton' in primitiveEvent) {
             Object.defineProperty(detail, 'mousePointInLeftClickRect', { get: function() { return primitiveEvent.mousePointInLeftClickRect; } });
             Object.defineProperty(detail, 'mousePointInCenterClickRect', { get: function() { return primitiveEvent.mousePointInCenterClickRect; } });
             Object.defineProperty(detail, 'mousePointInRightClickRect', { get: function() { return primitiveEvent.mousePointInRightClickRect; } });
+            Object.defineProperty(detail, 'mousePointInButton', { get: function() { return primitiveEvent.mousePointInButton; } });
         }
     }
 
