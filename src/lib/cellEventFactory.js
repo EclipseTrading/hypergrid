@@ -342,7 +342,7 @@ var cellEventProperties = Object.defineProperties({}, { // all props non-enumera
 
     mousePointInButton: {
         get: function() {
-            return this.mousePointInLeftClickRect || this.mousePointInRightClickRect;
+            return this.mousePointInLeftClickRect || this.mousePointInCenterClickRect || this.mousePointInRightClickRect;
         }
     },
 
