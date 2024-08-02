@@ -17,7 +17,7 @@ function warnColumnEnumDeprecation(method, msg) {
 
 exports.mixin = {
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      */
     columnEnumSynchronize: function() {
         this._columnEnumKey = this._columnEnumKey || 'toAllCaps';

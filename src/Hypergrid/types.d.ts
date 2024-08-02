@@ -1,18 +1,22 @@
+import type { FinBar } from '../finbars/finbars';
+import { HypergridCanvas } from '../lib/Canvas';
+
 export type Hypergrid = {
     behavior: Behavior;
     div: HTMLElement;
-    canvas: HTMLCanvasElement;
+    canvas: HypergridCanvas;
     hoverCell: any;
-    renderer: Renderer
+    renderer: Renderer;
     repaint: () => void;
 
     getRenderedWidth(colIndex: number): number;
     getRenderedHeight(rowIndex: number): number;
-}
 
-export type Renderer = {
-    visibleColumns: any[];
-    visibleRows: any[];
-    visibleColumnsByIndex: any[];
-    visibleRowsByDataRowIndex: any[];
+    sbVScroller: FinBar;
+    sbHScroller: FinBar;
+
+    getBounds(): Rectangle;
+
+    /** The dimensions of the grid data have changed. You've been notified. */
+    behaviorShapeChanged(): void;
 }

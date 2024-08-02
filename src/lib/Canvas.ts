@@ -317,12 +317,13 @@ export class HypergridCanvas implements Paintable, Resizable {
     public resize(box: Rectangle | undefined = undefined): void {
         box = this.size = box || this.getDivBoundingClientRect();
 
-        this.width = box.width;
-        this.height = box.height;
+        // Reduce the size of the canvas if scrollbars are present. Scrollbars are lazy loaded, and may not be present.
+        this.width = box.width - (this.component.grid?.sbVScroller?.thickness ?? 0);
+        this.height = box.height - (this.component.grid?.sbHScroller?.thickness ?? 0);
 
         // http://www.html5rocks.com/en/tutorials/canvas/hidpi/
-        var isHIDPI = window.devicePixelRatio && this.component.properties.useHiDPI;
-        var ratio = isHIDPI && window.devicePixelRatio || 1;
+        var isHiDPI = window.devicePixelRatio && this.component.properties.useHiDPI;
+        var ratio = isHiDPI && window.devicePixelRatio || 1;
 
         this.devicePixelRatio = ratio *= this.bodyZoomFactor;
 
@@ -341,7 +342,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private resizeNotification(): void {
@@ -352,7 +353,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     public resetZoom(): void {
@@ -378,12 +379,12 @@ export class HypergridCanvas implements Paintable, Resizable {
         this.resize();
     }
 
-    public getBounds(): void {
+    public getBounds() {
         return this.bounds;
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     public paintNow(): void {
@@ -412,7 +413,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private dispatchNewEvent(primitiveEvent: any, name: string, detail: Record<string, any> = {}): boolean {
@@ -444,7 +445,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private finmousemove(e: MouseEvent): void {
@@ -469,7 +470,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private finmousedown(e: MouseEvent): void {
@@ -483,7 +484,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private finmouseup(e: MouseEvent): void {
@@ -507,7 +508,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private finmouseout(e: MouseEvent): void {
@@ -521,7 +522,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private finwheelmoved(e: WheelEvent): void {
@@ -535,7 +536,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private finclick(e: MouseEvent): void {
@@ -546,7 +547,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private findblclick(e: MouseEvent): void {
@@ -572,7 +573,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private finkeydown(e: KeyboardEvent): void {
@@ -610,7 +611,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private finkeyup(e: KeyboardEvent): void {
@@ -692,7 +693,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private requestRepaint(): void {
@@ -700,7 +701,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private repaint(): void {
@@ -721,7 +722,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     private getLocal(e: any): Point {
@@ -740,7 +741,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     public takeFocus(): void {
@@ -753,7 +754,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     public setFocusable(truthy: boolean): void {
@@ -773,7 +774,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this CanvasType
      */
     public dispatchEvent(e: any): boolean {
