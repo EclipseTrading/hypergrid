@@ -45,7 +45,21 @@ export class FinBar {
 
     content: HTMLElement | undefined;
     container: HTMLElement | undefined;
+
+    /**
+     * Content size in units (rows/columns), or pixels when {@link onchange} has been set to {@link scrollRealContent}.
+     * @remarks
+     * Note, for rows, this excludes the header row and sticky rows (like total row).
+     */
     contentSize: number;
+
+    /**
+     * Bounding container size in units (rows/columns), or pixels when {@link onchange} has been set to {@link scrollRealContent}.
+     * @remarks
+     * Note, for rows, this excludes the header row and sticky rows (like total row).
+     *
+     * When the container is smaller than the content, scrollbars appear.
+     */
     containerSize: number;
 
     /**
@@ -593,7 +607,7 @@ export class FinBar {
      * @remarks The thumb size has an absolute minimum of 30 (pixels).
      */
     private _setThumbSize() {
-        var oh = this.oh,
+        const oh = this.oh,
             thumbComp = window.getComputedStyle(this.thumb),
             thumbMarginLeading = parseInt(thumbComp[oh.marginLeading]),
             thumbMarginTrailing = parseInt(thumbComp[oh.marginTrailing]),
@@ -613,9 +627,14 @@ export class FinBar {
         this._thumbMarginLeading = thumbMarginLeading; // used in mousedown
     }
 
+    /** Gets whether the scrollbar is visible. */
+    get isVisible() {
+        return this.bar.style.visibility === 'visible';
+    }
+
     /** Gets the thickness of the scrollbar. */
     get thickness() {
-        return this.bar.style.visibility === 'visible' ? this.bar.getBoundingClientRect()[this.oh.thickness] : 0;
+        return this.isVisible ? this.bar.getBoundingClientRect()[this.oh.thickness] : 0;
     }
 
     /** Gets the container that has the scrollbars. */

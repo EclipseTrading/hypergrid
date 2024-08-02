@@ -1,5 +1,6 @@
 import { FinBar } from '../finbars/finbars';
 import modules from './modules';
+import { Hypergrid } from './types';
 const Scrollbar = modules.Scrollbar;
 
 /**
@@ -35,14 +36,14 @@ exports.mixin = {
      * @type {FinBar}
      * @memberOf Hypergrid#
      */
-    sbVScroller: null as FinBar|null,
+    sbVScroller: null as FinBar | null,
 
     /**
      * The horizontal scroll bar model/controller.
      * @type {FinBar}
      * @memberOf Hypergrid#
      */
-    sbHScroller: null as FinBar|null,
+    sbHScroller: null as FinBar | null,
 
     /**
      * The previous value of sbVScrollVal.
@@ -61,7 +62,7 @@ exports.mixin = {
     scrollingNow: false,
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @memberOf Hypergrid#
      * @summary Set for `scrollingNow` field.
      * @param {boolean} isItNow - The type of event we are interested in.
@@ -161,7 +162,7 @@ exports.mixin = {
     },
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @memberOf Hypergrid#
      * @this {Hypergrid}
      * @desc Set the vertical scroll value.
@@ -194,11 +195,11 @@ exports.mixin = {
     },
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @memberOf Hypergrid#
      * @this {Hypergrid}
      * @desc Set the horizontal scroll value.
-     * @param {number} newValue - The new scroll value.
+     * @param {number} x - The new scroll value.
      */
     setHScrollValue: function (x) {
         var self = this;
@@ -228,7 +229,7 @@ exports.mixin = {
     },
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @memberOf Hypergrid#
      * @this {Hypergrid}
      * @desc Initialize the scroll bars.
@@ -276,20 +277,28 @@ exports.mixin = {
         this.resizeScrollbars();
     },
 
-    resizeScrollbars: function () {
+    resizeScrollbars(this: Hypergrid) {
+        // Cache the current visibility state of the scrollbars.
+        const hVisible = this.sbHScroller.isVisible;
+        const vVisible = this.sbVScroller.isVisible;
+
+        // Let the scrollbars resize themselves based on the content and container sizes.
         this.sbHScroller.shortenBy(this.sbVScroller).resize();
         this.sbVScroller
             // NOTE: Below is commented out because it would show a square in the corner not covered by the scroll bar.
             //.shortenBy(this.sbHScroller)
             .resize();
+
+        // If visibility changed during scrollbar resize, then the grid shape changed, and the canvas should resize.
+        if (this.sbHScroller.isVisible !== hVisible || this.sbVScroller.isVisible !== vVisible) {
+            this.canvas.resize();
+        }
     },
 
     /**
-     * @memberOf Hypergrid#
-     * @this {Hypergrid}
-     * @desc Scroll values have changed, we've been notified.
+     * Scroll values have changed, we've been notified.
      */
-    setVScrollbarValues: function (max, containerSize) {
+    setVScrollbarValues(this: Hypergrid, max: number, containerSize: number) {
         // Set the scroll range, which by default resets the contentSize.
         this.sbVScroller.range = {
             min: 0,
@@ -300,7 +309,7 @@ exports.mixin = {
         this.sbVScroller.containerSize = containerSize;
     },
 
-    setHScrollbarValues: function (max, containerSize) {
+    setHScrollbarValues(this: Hypergrid, max: number, containerSize: number) {
         // Set the scroll range, which by default resets the contentSize.
         this.sbHScroller.range = {
             min: 0,
@@ -312,7 +321,7 @@ exports.mixin = {
     },
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @this {Hypergrid}
      */
     scrollValueChangedNotification: function () {
@@ -337,7 +346,7 @@ exports.mixin = {
      * @desc The data dimensions have changed, or our pixel boundaries have changed.
      * Adjust the scrollbar properties as necessary.
      */
-    synchronizeScrollingBoundaries: function () {
+    synchronizeScrollingBoundaries() {
         var bounds = this.getBounds();
         if (!bounds) {
             return;
@@ -346,7 +355,7 @@ exports.mixin = {
         var numFixedColumns = this.getFixedColumnCount(),
             numColumns = this.getColumnCount(),
             numRows = this.getRowCount(),
-            scrollableWidth = bounds.width - this.behavior.getFixedColumnsMaxWidth() - this.sbHScroller.thickness,
+            scrollableWidth = bounds.width - this.behavior.getFixedColumnsMaxWidth(),
             gridProps = this.properties,
             borderBox = gridProps.boxSizing === 'border-box',
             lineGap = borderBox ? 0 : gridProps.gridLinesVWidth;
@@ -363,8 +372,8 @@ exports.mixin = {
         }
 
         // Note: Scrollable height excludes the header.
-        var scrollableHeight = this.renderer.getVisibleScrollHeight() - this.sbVScroller.thickness;
-        lineGap = borderBox ? 0 : gridProps.gridLinesHWidth;
+        var scrollableHeight = this.renderer.getVisibleScrollHeight();
+        lineGap = borderBox ? 0 : gridProps.gridLinesHWidth; // NOTE: Excludes total row thickness.
 
         for (
             var rowsHeight = 0, lastPageRowCount = 0;

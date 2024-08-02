@@ -92,7 +92,7 @@ module.exports = {
     },
 
     /**
-     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672)
+     * @type {any} // Handle TS bug, remove this issue after resolved {@link https://github.com/microsoft/TypeScript/issues/41672}
      * @implements DataModel#setMetadataStore
      */
     setMetadataStore: function(newMetadataStore) {
