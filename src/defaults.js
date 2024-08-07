@@ -832,6 +832,13 @@ var defaults = {
     useHiDPI: true,
 
     /**
+     * @default
+     * @type {boolean}
+     * @memberOf module:defaults
+     */
+    enableDropHint: false,
+
+    /**
      * @summary Mappings for cell navigation keys.
      * @desc Cell navigation is handled in the {@link CellSelection} "feature".
      * This property gives you control over which key presses the built-in mechanism will respond to.
