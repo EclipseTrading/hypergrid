@@ -103,6 +103,7 @@ export abstract class CellEditor extends Base {
                     alt: event.altKey,
                     ctrl: event.ctrlKey,
                     char: keyChar,
+                    legacyChar: event.legacyKey, // decorated by getKeyChar
                     code: event.charCode,
                     key: event.keyCode,
                     meta: event.metaKey,
