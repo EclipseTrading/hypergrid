@@ -340,6 +340,20 @@ var Renderer = Base.extend('Renderer', {
         return result;
     },
 
+    getRowIndexFromMousePoint: function(point) {
+        var y = point.y
+        var vrs = this.visibleRows
+        var vr = vrs.find(function(vr) { return y < vr.bottom; });
+
+        if (vr !== undefined) {
+            var onLowerHalf = y > (vr.top + (vr.bottom - vr.top) / 2)
+            return onLowerHalf ? vr.index + 1 : vr.index;
+        }
+
+        // last row
+        return vrs[vrs.length - 1].index + 1;
+    },
+
     /**
      * Matrix of unformatted values of visible cells.
      * @returns {Array<Array>}

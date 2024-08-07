@@ -317,7 +317,15 @@ exports.mixin = {
     },
 
     fireSyntheticDropEvent: function(dropEvent) {
-        return dispatchGridEvent.call(this, 'fin-drop', dropEvent);
+        var dropIndex = this.getRowIndexFromMousePoint({
+            x: dropEvent.detail.primitiveEvent.x,
+            y: dropEvent.detail.primitiveEvent.y
+        });
+
+        return dispatchGridEvent.call(this, 'fin-drop', {
+            dropIndex: dropIndex,
+            headerRowCount: this.getHeaderRowCount()
+        }, dropEvent.detail.primitiveEvent);
     },
 
     fireSyntheticDocumentDragEvent: function(dragEvent) {

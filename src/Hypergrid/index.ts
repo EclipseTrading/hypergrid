@@ -1265,6 +1265,10 @@ var Hypergrid = Base.extend('Hypergrid', {
         return this.renderer.getGridCellFromMousePoint(mouse);
     },
 
+    getRowIndexFromMousePoint: function (mouse: Point) {
+        return this.renderer.getRowIndexFromMousePoint(mouse);
+    },
+
     /**
      * @param {Point} gridCell - The pixel location of the mouse in physical grid coordinates.
      * @returns {Rectangle} The pixel based bounds rectangle given a data cell point.

@@ -25,6 +25,10 @@ export class Drag extends FeatureBase {
     }
 
     handleDocumentDragOver(grid: any, event: { detail: { primitiveEvent: DragEvent } }): void {
+        if (!grid.properties.enableDropHint) {
+            return
+        }
+
         this.renderDragHint(grid, event)
         this.scrollOnEdge(grid, event)
         if (this.next) {
@@ -33,9 +37,15 @@ export class Drag extends FeatureBase {
     }
 
     handleDocumentDragEnd(grid: any, event: any): void {
-        this.dragHint.style.display = 'none'
         if (this.next) {
             this.next.handleDocumentDragEnd(grid, event);
+        }
+    }
+
+    handleDrop(grid: any, event: any): void {
+        this.dragHint.style.display = 'none'
+        if (this.next) {
+            this.next.handleDrop(grid, event);
         }
     }
 
