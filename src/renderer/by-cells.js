@@ -74,6 +74,7 @@ function paintCellsAsNeeded(gc) {
                 // VC-6892 Use _simplifiedPaintCell instead of _paintCell for performance reason
                 preferredWidth = Math.max(preferredWidth, this._paintCell(gc, pool[p]));
             } catch (e) {
+                cellEvent.snapshot[0] = undefined; // force repaint next time
                 this.renderErrorCell(e, gc, vc, pool[p].visibleRow);
             }
         }
