@@ -91,8 +91,8 @@ var ColumnSelection = Feature.extend('ColumnSelection', {
             !event.primitiveEvent.detail.isRightClick &&
             (
                 grid.properties.autoSelectColumns ||
-                event.isHeaderCell && event.mousePoint.y >= grid.properties.columnGrabMargin
-            ) && 
+                event.isHeaderCell
+            ) &&
             (!event.mousePointInLeftClickRect && !event.mousePointInRightClickRect)
             // VC-5715 the above checking is to avoid selecting the entire column when user is trying to click the button
         ) {

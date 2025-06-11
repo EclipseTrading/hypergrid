@@ -220,6 +220,7 @@ export class ColumnMoving extends FeatureBase {
             case DragActionType.Delete:
                 grid.behavior.removeColumn(dragAction.source.columnIndex)
                 grid.fireSyntheticColumnRemovedEvent(dragAction.source.columnIndex, dragAction.source.column)
+                grid.clearSelections()
                 break;
             case DragActionType.Move:
                 if (dragAction.location === MoveLocation.Before) {
@@ -237,6 +238,7 @@ export class ColumnMoving extends FeatureBase {
                         dragAction.target.columnIndex,
                         dragAction.target.columnIndex)
                 }
+                grid.clearSelections()
                 break;
         }
         grid.fireSyntheticOnColumnsChangedEvent()
