@@ -83,7 +83,7 @@
  * Typically a Local primitive value, values can be any type, including objects and arrays. The specified cell renderer is expected to know how to determine the value's type and render it.
  */
 
-var Base = require('../Base');
+var Base = require('../Base').default;
 
 /** @constructor
  * @desc Instances of `CellRenderer` are used to render the 2D graphics context within the bound of a cell.

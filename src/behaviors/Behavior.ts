@@ -1,7 +1,7 @@
 
 var Point = require('rectangular').Point;
 
-var Base = require('../Base');
+var Base = require('../Base').default;
 var Column = require('./Column');
 var cellEventFactory = require('../lib/cellEventFactory');
 var fields = require('../lib/fields');

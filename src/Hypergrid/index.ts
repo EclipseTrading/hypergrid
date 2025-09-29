@@ -12,7 +12,7 @@ var Rectangle = require('rectangular').Rectangle;
 var _ = require('object-iterators'); // fyi: installs the Array.prototype.find polyfill, as needed
 var injectCSS = require('inject-stylesheet-template').bind(require('../../css'));
 
-var Base = require('../Base');
+import Base from '../Base';
 var defaults = require('../defaults');
 var dynamicPropertyDescriptors = require('../lib/dynamicProperties');
 var Renderer = require('../renderer');

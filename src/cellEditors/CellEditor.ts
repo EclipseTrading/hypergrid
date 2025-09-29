@@ -1,4 +1,4 @@
-import Base from '../Base'
+import Base from '../Base';
 import Localization from '../lib/Localization';
 import effects from '../lib/DOM/effects'
 

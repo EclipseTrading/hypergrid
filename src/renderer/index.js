@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 
-var Base = require('../Base');
+var Base = require('../Base').default;
 var images = require('../../images');
 var layerProps = require('./layer-props');
 var InclusiveRectangle = require('../lib/InclusiveRectangle');

@@ -6,7 +6,7 @@
  */
 
 
-var Base = require('../Base');
+var Base = require('../Base').default;
 
 
 /**

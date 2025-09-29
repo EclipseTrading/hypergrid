@@ -1,6 +1,6 @@
 import { IFeature } from "./IFeature";
 
-var Base = require('../Base');
+var Base = require('../Base').default;
 
 /**
  * @typedef {any} Hypergrid TODO
