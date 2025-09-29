@@ -1,15 +1,14 @@
 /* eslint-env browser */
 
 
-// @ts-ignore TODO
-require('../lib/polyfills'); // Installs misc. polyfills into global objects, as needed
+
 
 import { CellEditors } from "../cellEditors";
 import { HypergridCanvas as Canvas } from "../lib/Canvas";
 
 var Point = require('rectangular').Point;
 var Rectangle = require('rectangular').Rectangle;
-var _ = require('object-iterators'); // fyi: installs the Array.prototype.find polyfill, as needed
+
 var injectCSS = require('inject-stylesheet-template').bind(require('../../css'));
 
 import Base from '../Base';
@@ -533,15 +532,16 @@ var Hypergrid = Base.extend('Hypergrid', {
         } else if (!Array.isArray(pluginNames)) {
             pluginNames = [pluginNames];
         }
-        _(this.plugins).each(function(plugin, key, plugins) {
+        Object.keys(this.plugins).forEach((key) => {
+            var plugin = this.plugins[key];
             if (
-                plugins.hasOwnProperty(key) &&
+                this.plugins.hasOwnProperty(key) &&
                 pluginNames.indexOf(key) >= 0 &&
                 plugin.uninstall
             ) {
-                plugin.uninstall(this, key, plugins);
+                plugin.uninstall(this, key, this.plugins);
             }
-        }, this);
+        });
     },
 
     computeCellsBounds: function() {

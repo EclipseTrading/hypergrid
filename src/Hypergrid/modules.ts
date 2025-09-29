@@ -28,7 +28,7 @@ Object.defineProperties(modules, {
     'datasaur-local': { value: require('datasaur-local') }, // may be removed in a future release
     'extend-me': {value: require('extend-me') },
     finbars: { value: FinBar },
-    'object-iterators': { value: require('object-iterators') },
+
     overrider: { value: require('overrider') },
     rectangular: { value: require('rectangular') },
     'sparse-boolean-array': { value: require('sparse-boolean-array') },

@@ -5,7 +5,7 @@
 // The initial registry consists of a single theme ('default').
 // Application developers can add additional themes to this registry.
 
-var _ = require('object-iterators'); // fyi: installs the Array.prototype.find polyfill, as needed
+
 
 /**
  * @typedef {any} HypergridThemeObject TODO
@@ -277,9 +277,10 @@ var sharedMixin = {
      */
     registerThemes: function(themeCollection) {
         if (themeCollection) {
-            _(themeCollection).each(function(theme, name) {
+            Object.keys(themeCollection).forEach((name) => {
+                var theme = themeCollection[name];
                 this.registerTheme(name, theme);
-            }, this);
+            });
         } else {
             Object.keys(registry).forEach(function(themeName) {
                 this.registerTheme(themeName);
