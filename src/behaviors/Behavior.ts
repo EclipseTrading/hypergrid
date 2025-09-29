@@ -6,7 +6,7 @@ var Column = require('./Column');
 var cellEventFactory = require('../lib/cellEventFactory');
 var fields = require('../lib/fields');
 var featureRegistry = require('../features');
-var ArrayDecorator = require('synonomous');
+
 var assignOrDelete = require('../lib/assignOrDelete');
 var dispatchGridEvent = require('../lib/dispatchGridEvent');
 
@@ -330,16 +330,9 @@ var Behavior = Base.extend('Behavior', {
     },
 
     addColumn: function (options) {
-        var column = this.newColumn(options),
-            arrayDecorator = new ArrayDecorator,
-            synonyms = arrayDecorator.getSynonyms(column.name);
-
+        var column = this.newColumn(options);
         this.columns.push(column);
-        arrayDecorator.decorateObject(this.columns, synonyms, column);
-
         this.allColumns.push(column);
-        arrayDecorator.decorateObject(this.allColumns, synonyms, column);
-
         return column;
     },
 
@@ -350,8 +343,6 @@ var Behavior = Base.extend('Behavior', {
         var schema = this.dataModel.getSchema();
 
         fields.normalizeSchema(schema);
-        fields.decorateSchema(schema);
-        fields.decorateColumnSchema(schema, this.grid.properties.headerify);
 
         this.createDataRowProxy();
 
@@ -495,10 +486,8 @@ var Behavior = Base.extend('Behavior', {
 
     setColumnOrder: function (columnIndexes) {
         if (Array.isArray(columnIndexes)) {
-            var columns = this.columns,
-                allColumns = this.allColumns,
-                arrayDecorator = new ArrayDecorator;
-
+            var columns = this.columns;
+            var allColumns = this.allColumns;
             // avoid recreating the `columns` array object to keep refs valid; just empty it
             columns.length = 0;
             var tc = this.treeColumnIndex.toString(), rc = this.rowColumnIndex.toString();
@@ -515,8 +504,6 @@ var Behavior = Base.extend('Behavior', {
             columnIndexes.forEach(function (index) {
                 columns.push(allColumns[index]);
             });
-
-            arrayDecorator.decorateArray(columns);
         }
     },
 

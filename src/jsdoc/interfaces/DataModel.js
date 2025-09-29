@@ -97,8 +97,6 @@
  * ```
  * This event is not cancelable.
  * {@link module:fields.normalizeSchema normalizeSchema}
- * {@link module:fields.decorateSchema decorateSchema}
- * {@link module:fields.decorateColumnSchema decorateColumnSchema}
  */
 
 /** @event DataModel#fin-hypergrid-data-loaded

@@ -32,7 +32,7 @@ Object.defineProperties(modules, {
     overrider: { value: require('overrider') },
     rectangular: { value: require('rectangular') },
     'sparse-boolean-array': { value: require('sparse-boolean-array') },
-    synonomous: { value: require('synonomous') }
+
 });
 
 export default modules;

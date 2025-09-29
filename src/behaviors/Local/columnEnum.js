@@ -3,8 +3,7 @@
 // through .schema, .columns, and .allColumns, all of which now sport self-referential dictionaries.
 // To finally remove, delete this file and all lines using `_columnEnum`
 
-var ArrayDecorator = require('synonomous');
-var transformers = require('synonomous/transformers');
+
 
 var warned = {};
 
@@ -24,21 +23,11 @@ exports.mixin = {
 
         var columnEnum = this._columnEnum || (this._columnEnum = {}),
             // @ts-ignore
-            allColumns = this.allColumns,
-            arrayDecorator = new ArrayDecorator({ transformations: [this._columnEnumKey] }),
-            dict = arrayDecorator.decorateArray(allColumns.slice());
-
-        dict.length = 0;
-        Object.keys(dict).reduce(function(columnEnum, key) {
-            columnEnum[key] = dict[key].index;
-            return columnEnum;
-        }, columnEnum);
-
-        // clean up
-        Object.keys(columnEnum).forEach(function(key) {
-            if (!(key in dict)) {
-                delete columnEnum[key];
-            }
+            allColumns = this.allColumns;
+        // Synonym/transformer logic removed
+        // Legacy: just map column names to their index
+        allColumns.forEach(function(col, idx) {
+            columnEnum[col.name] = idx;
         });
     },
 
@@ -56,25 +45,11 @@ exports.mixin = {
     },
     set columnEnumKey(transformer) {
         warnColumnEnumDeprecation('columnEnumKey');
-        var type = typeof transformer,
-            keys = Object.keys(transformers);
-        switch (type) {
-            case 'string':
-                if (transformer === 'passThrough') {
-                    transformer = 'verbatim';
-                } else if (!(transformer in transformers)) {
-                    throw new this.HypergridError('Expected registered transformer for .columnEnumKey value from: ' + keys);
-                }
-                this._columnEnumKey = transformer;
-                break;
-            case 'function':
-                this._columnEnumKey = keys.find(function(key) { return transformer === transformers[key]; });
-                if (!this._columnEnumKey) {
-                    throw new this.HypergridError('.columnEnumKey has been deprecated as of v3.0.0 and now accepts a function reference (or string key) from require("synonmous/transformers"): ' + keys);
-                }
-                break;
-            default:
-                throw new this.HypergridError('Expected string or function for .columnEnumKey assignment but received ' + type + '.');
+        // Only allow string assignment for legacy compatibility
+        if (typeof transformer === 'string') {
+            this._columnEnumKey = transformer;
+        } else {
+            throw new this.HypergridError('Expected string for .columnEnumKey assignment but received ' + typeof transformer + '.');
         }
     }
 };
@@ -82,6 +57,6 @@ exports.mixin = {
 exports.mixInShared = {
     get columnEnumDecorators() {
         warnColumnEnumDeprecation('columnEnumDecorators');
-        return transformers;
+        return {};
     }
 };

@@ -3,45 +3,12 @@
  * @module fields
  */
 
-var Decorator = require('synonomous');
+
 
 var REGEXP_META_PREFIX = /^__/; // starts with double underscore
 
 var fields = {
 
-    /**
-     * Decorate given grid schema with:
-     * * Synonym(s) based on `name` property of each element:
-     * @param {columnSchema[]} schema
-     * @returns {columnSchema[]} The given schema.
-     * @memberOf module:fields
-     */
-    decorateSchema: function(schema) {
-        var decorator = new Decorator;
-
-        decorator.decorateArray(schema);
-
-        return schema;
-    },
-
-    /**
-     * Decorate each element of schema with:
-     * * `header` property (when undefined)
-     * @param {columnSchema[]} schema
-     * @param {string} [headerifierName] - Name of string transformer to use to generate headers (from column names) for those columns without defined headers. If omitted or undefined, no decoration takes place.
-     * @returns {columnSchema[]} The given schema.
-     * @memberOf module:fields
-     */
-    decorateColumnSchema: function(schema, headerifierName) {
-        var decorator = new Decorator;
-
-        decorator.transformations = {};
-        decorator.transformations[headerifierName] = 'header';
-
-        decorator.decorateArray(schema);
-
-        return schema;
-    },
 
     /**
      * @summary Normalizes and returns given schema array.
@@ -108,14 +75,7 @@ var fields = {
         });
     },
 
-    /**
-     * Used by {@link module:fields.getSchema getSchema}.
-     * Override as needed for different titleization flavor.
-     * @param {string} key
-     * @returns {string} Title version of key (for use as column header).
-     * @memberOf module:fields
-     */
-    titleize: require('synonomous/transformers').toTitle,
+
 
     /**
      * @summary Returns a schema derived from given sample data row with "metakeys" filtered out.
@@ -133,9 +93,7 @@ var fields = {
          */
         var schema = fields.getFieldNames(dataRow);
 
-        fields.normalizeSchema(schema);
-        fields.decorateSchema(schema);
-        fields.decorateColumnSchema(schema, 'toTitle');
+    fields.normalizeSchema(schema);
 
         return schema;
     }

@@ -519,21 +519,6 @@ var defaults = {
     renderFalsy: false,
 
     /**
-     * The name of a transformer function defined in require('synonomous/transformers').
-     *
-     * If the named headerify function is defined, whenever the schema array changes, it is applied each element
-     * (column schema) for each column that does not already have an explicitly defined `header` property.
-     *
-     * When this property does not name a defined headerify function, undefined column headers default to their column names.
-     *
-     * @see lib/headerifiers.js
-     * @default
-     * @type {string}
-     * @memberOf module:defaults
-     */
-    headerify: 'toTitle',
-
-    /**
      * Enable rendering of horizontal grid lines.
      * @default
      * @type {boolean}
