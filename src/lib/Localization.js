@@ -36,42 +36,6 @@ var Formatter = Base.extend({
     }
 });
 
-
-// Safari has no Intl implementation
-if (!window.Intl) {
-    window.Intl = {
-        NumberFormat: function (locale, options) {
-            var digits = '0123456789';
-            this.format = function (n) {
-                var s = n.toString();
-                if (!options || options.useGrouping === undefined || options.useGrouping) {
-                    var dp = s.indexOf('.');
-                    if (dp < 0) {
-                        dp = s.length;
-                    }
-                    while ((dp -= 3) > 0 && digits.indexOf(s[dp - 1]) >= 0) {
-                        s = s.substr(0, dp) + ',' + s.substr(dp);
-                    }
-                }
-                return s;
-            };
-        },
-        DateTimeFormat: function (locale, options) {
-            this.format = function (date) {
-                if (date != null) {
-                    if (typeof date !== 'object') {
-                        date = new Date(date);
-                    }
-                    date = date.getMonth() + 1 + '-' + date.getDate() + '-' + date.getFullYear();
-                } else {
-                    date = null;
-                }
-                return date;
-            };
-        }
-    };
-}
-
 var SimpleNumberFormatter = Formatter.extend('SimpleNumberFormatter', {
     initialize: function (_, locale, options) {
         if (typeof locale === 'object') {
