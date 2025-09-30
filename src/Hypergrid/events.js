@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 var dispatchGridEvent = require('../lib/dispatchGridEvent');
-var Button = require('../cellRenderers/Button');
+import Button from '../cellRenderers/Button';
 
 /**
  * @summary Grid event support.
