@@ -19,7 +19,7 @@ var SelectionModel = require('../lib/SelectionModel');
 var Localization = require('../lib/Localization');
 var Behavior = require('../behaviors/Behavior');
 var behaviorJSON = require('../behaviors/Local');
-var cellRenderers = require('../cellRenderers');
+import cellRenderers from '../cellRenderers';
 import modules from './modules';
 
 var EDGE_STYLES = ['top', 'bottom', 'left', 'right'],

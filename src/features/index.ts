@@ -1,11 +1,10 @@
 
 import { CellEditing } from "./CellEditing";
-import { ColumnMoving } from "./ColumnMoving"
+import { ColumnMoving } from "./ColumnMoving";
 import { ColumnResizing } from "./ColumnResizing";
 import { Drag } from "./Drag";
 import { OnHover } from "./OnHover";
 var Registry = require('../lib/Registry');
-
 
 /**
  * @classdesc Registry of feature constructors.
@@ -13,29 +12,24 @@ var Registry = require('../lib/Registry');
  * @constructor
  */
 var Features = Registry.extend('Features', {
-
     BaseClass: require('./Feature'), // abstract base class
-
     initialize: function () {
-        // preregister the standard cell renderers
-        this.add(Features.CellClick);
-        this.add(CellEditing);
-        this.add(Features.CellSelection);
-        this.add(ColumnMoving);
-        this.add(ColumnResizing);
-        this.add(Features.ColumnSelection);
-        this.add(Features.ColumnSorting);
-        this.add(Features.Filters);
-        this.add(Features.KeyPaging);
-        this.add(OnHover);
-        this.add(Drag);
-        this.add(Features.RowSelection);
-        this.add(Features.ThumbwheelScrolling);
-        this.add(Features.TouchScrolling);
+        this.add("CellClick", Features.CellClick);
+        this.add("CellEditing", CellEditing);
+        this.add("CellSelection", Features.CellSelection);
+        this.add("ColumnMoving", ColumnMoving);
+        this.add("ColumnResizing", ColumnResizing);
+        this.add("ColumnSelection", Features.ColumnSelection);
+        this.add("ColumnSorting", Features.ColumnSorting);
+        this.add("Filters", Features.Filters);
+        this.add("KeyPaging", Features.KeyPaging);
+        this.add("OnHover", OnHover);
+        this.add("Drag", Drag);
+        this.add("RowSelection", Features.RowSelection);
+        this.add("ThumbwheelScrolling", Features.ThumbwheelScrolling);
+        this.add("TouchScrolling", Features.TouchScrolling);
     }
-
 });
-
 
 // Following shared props provided solely in support of build file usage, e.g., `fin.Hypergrid.features.yada`,
 // presumably for overriding built-in features, and are not meant to be used elsewhere.
@@ -51,6 +45,5 @@ Features.KeyPaging = require('./KeyPaging');
 Features.RowSelection = require('./RowSelection');
 Features.ThumbwheelScrolling = require('./ThumbwheelScrolling');
 Features.TouchScrolling = require('./TouchScrolling');
-
 
 module.exports = new Features;

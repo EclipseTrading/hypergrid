@@ -21,26 +21,26 @@ const CellRenderers = Registry.extend('CellRenderers', {
     BaseClass: require('./CellRenderer'), // abstract base class
     initialize: function() {
         // preregister the standard cell renderers
-        this.add(Button);
-        this.add(SimpleCell);
-        this.add(PlusMinusButtonCell);
-        this.add(SliderCell);
-        this.add(SparkBar);
-        this.add(LastSelection);
-        this.add(SparkLine);
-        this.add(ErrorCell);
-        this.add(Tag);
-        this.add(TreeCell);
-        this.add(TreeGroupCell);
+        this.add(new Button());
+        this.add(new SimpleCell());
+        this.add(new PlusMinusButtonCell());
+        this.add(new SliderCell());
+        this.add(new SparkBar());
+        this.add(new LastSelection());
+        this.add(new SparkLine());
+        this.add(new ErrorCell());
+        this.add(new Tag());
+        this.add(new TreeCell());
+        this.add(new TreeGroupCell());
         this.add('emptycell', this.BaseClass); // remove this when deprecation below retired
     },
     // for better performance, instantiate at add time rather than render time.
-    add: function(name: any, Constructor?: any) {
+    add: function(name: any, item?: any) {
         if (arguments.length === 1) {
-            Constructor = name;
-            return Registry.prototype.add.call(this, new Constructor());
+            item = name;
+            return Registry.prototype.add.call(this, item);
         } else {
-            return Registry.prototype.add.call(this, name, new Constructor());
+            return Registry.prototype.add.call(this, name, item);
         }
     },
     get: function(name: any) {
