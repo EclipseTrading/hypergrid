@@ -201,11 +201,6 @@ function createColumns() {
     this.schema.forEach(function(columnSchema) {
         this.addColumn(columnSchema);
     }, this);
-
-    this.columnEnumSynchronize();
 }
-
-Local.prototype.mixIn(require('./columnEnum').mixin);
-Local.prototype.mixIn.call(Local, require('./columnEnum').mixInShared);
 
 module.exports = Local;

@@ -21,7 +21,6 @@ var Features = Registry.extend('Features', {
         this.add("ColumnResizing", ColumnResizing);
         this.add("ColumnSelection", Features.ColumnSelection);
         this.add("ColumnSorting", Features.ColumnSorting);
-        this.add("Filters", Features.Filters);
         this.add("KeyPaging", Features.KeyPaging);
         this.add("OnHover", OnHover);
         this.add("Drag", Drag);
@@ -40,7 +39,6 @@ Features.CellEditing = require('./CellEditing');
 Features.CellSelection = require('./CellSelection');
 Features.ColumnSelection = require('./ColumnSelection');
 Features.ColumnSorting = require('./ColumnSorting');
-Features.Filters = require('./Filters');
 Features.KeyPaging = require('./KeyPaging');
 Features.RowSelection = require('./RowSelection');
 Features.ThumbwheelScrolling = require('./ThumbwheelScrolling');

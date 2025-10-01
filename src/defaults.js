@@ -1479,7 +1479,7 @@ var defaults = {
      * Used to access registered features -- unless behavior has a non-empty `features` property (array of feature contructors).
      */
     features: [
-        'filters',
+    // ...existing code...
         'cellselection',
         'keypaging',
         'columnresizing',

@@ -1,5 +1,4 @@
 import { Base as ExtendMeBase } from 'extend-me';
-import deprecated from './lib/deprecated';
 import HypergridError from './lib/error';
 import { mixIn } from 'overrider';
 
@@ -13,7 +12,6 @@ import { mixIn } from 'overrider';
  */
 class Base extends ExtendMeBase {
     static extend = ExtendMeBase.extend;
-    deprecated = deprecated;
     HypergridError = HypergridError;
 
     notify(message: string, onerror?: 'warn' | 'alert'): void {
@@ -67,8 +65,6 @@ class Base extends ExtendMeBase {
 
 // Assign legacy prototype properties for extension compatibility
 Object.assign(Base.prototype, {
-    HypergridError: HypergridError,
-    deprecated: deprecated,
     unwrap: function<T>(value: T | (() => T)): T {
         if (typeof value === 'function') {
             return (value as () => T)();
