@@ -1,5 +1,6 @@
 
 var Registry = require('../lib/Registry');
+import { AdvancedCell } from './AdvancedCell';
 import { SimpleCell } from './SimpleCell';
 
 
@@ -17,6 +18,7 @@ var CellRenderers = Registry.extend('CellRenderers', {
         // preregister the standard cell renderers
         this.add(require('./Button'));
         this.add(SimpleCell);
+        this.add(AdvancedCell)
         this.add(require('./PlusMinusButtonCell'));
         this.add(require('./SliderCell'));
         this.add(require('./SparkBar'));
