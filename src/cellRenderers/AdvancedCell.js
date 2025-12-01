@@ -159,8 +159,8 @@ var AdvancedCell = CellRenderer.extend('AdvancedCell', {
                     if (result.done) {
                         // assume single
                         [valWidth, rightEmptyWidth] = config.isHeaderRow && config.headerTextWrapping
-                            ? renderMultiLineText(gc, config, val, leftPadding, rightPadding)
-                            : renderSingleLineText(gc, config, val, leftPadding, rightPadding, true);
+                            ? renderMultiLineText(gc, config, val, 0, 0)
+                            : renderSingleLineText(gc, config, val, 0, 0, true);
                     }
                     else {
                         // Setup new config
@@ -170,14 +170,14 @@ var AdvancedCell = CellRenderer.extend('AdvancedCell', {
                             let rangeEnd = result.value.index
                             if (xIndex < rangeEnd) {
                                 // Handling default substring
-                                let subStr = val.substring(xIndex, result.index);
+                                let subStr = val.substring(xIndex, result.value.index);
                                 gc.cache.fillStyle = textColor;
                                 [valWidth, rightEmptyWidth] = rgxConfig.isHeaderRow && rgxConfig.headerTextWrapping
-                                    ? renderMultiLineText(gc, rgxConfig, subStr, leftPadding, rightPadding)
-                                    : renderSingleLineText(gc, rgxConfig, subStr, leftPadding, rightPadding, false);
+                                    ? renderMultiLineText(gc, rgxConfig, subStr, 0, 0)
+                                    : renderSingleLineText(gc, rgxConfig, subStr, 0, 0, false);
                                 xIndex += subStr.length;
                                 consumedWidth = Math.ceil(gc.measureText(subStr).width);
-                                regexX += valWidth;
+                                regexX += consumedWidth;
                                 regexWidth = Math.max(regexWidth - consumedWidth, 0);
                                 rgxConfig.bounds.x = regexX;
                                 rgxConfig.bounds.width = regexWidth;
@@ -188,8 +188,8 @@ var AdvancedCell = CellRenderer.extend('AdvancedCell', {
                             // render line
                             gc.cache.fillStyle = reg.format.color !== undefined ? reg.format.color : textColor;
                             [valWidth, rightEmptyWidth] = rgxConfig.isHeaderRow && rgxConfig.headerTextWrapping
-                                ? renderMultiLineText(gc, rgxConfig, result.value[0], leftPadding, rightPadding)
-                                : renderSingleLineText(gc, rgxConfig, result.value[0], leftPadding, rightPadding, false);
+                                ? renderMultiLineText(gc, rgxConfig, result.value[0], 0, 0)
+                                : renderSingleLineText(gc, rgxConfig, result.value[0], 0, 0, false);
                             xIndex += result.value[0].length;
                             regexX += consumedWidth;
                             regexWidth = Math.max(regexWidth - consumedWidth, 0);
@@ -201,8 +201,8 @@ var AdvancedCell = CellRenderer.extend('AdvancedCell', {
                             let subStr = val.substring(xIndex, val.length);
                             gc.cache.fillStyle = textColor;
                             [valWidth, rightEmptyWidth] = rgxConfig.isHeaderRow && rgxConfig.headerTextWrapping
-                                ? renderMultiLineText(gc, rgxConfig, subStr, leftPadding, rightPadding)
-                                : renderSingleLineText(gc, rgxConfig, subStr, leftPadding, rightPadding, true);
+                                ? renderMultiLineText(gc, rgxConfig, subStr, 0, 0)
+                                : renderSingleLineText(gc, rgxConfig, subStr, 0, 0, true);
                         }
                     }
 
@@ -210,8 +210,8 @@ var AdvancedCell = CellRenderer.extend('AdvancedCell', {
             }
             else {
                 [valWidth, rightEmptyWidth] = config.isHeaderRow && config.headerTextWrapping
-                    ? renderMultiLineText(gc, config, val, leftPadding, rightPadding)
-                    : renderSingleLineText(gc, config, val, leftPadding, rightPadding, true);
+                    ? renderMultiLineText(gc, config, val, 0, 0)
+                    : renderSingleLineText(gc, config, val, 0, 0, true);
             }
         }
 
