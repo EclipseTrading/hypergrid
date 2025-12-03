@@ -176,14 +176,14 @@ var AdvancedCell = CellRenderer.extend('AdvancedCell', {
                                     ? renderMultiLineText(gc, rgxConfig, subStr, 0, 0)
                                     : renderSingleLineText(gc, rgxConfig, subStr, 0, 0, false);
                                 xIndex += subStr.length;
-                                consumedWidth = Math.ceil(gc.measureText(subStr).width);
+                                consumedWidth = gc.measureText(subStr).width;
                                 regexX += consumedWidth;
                                 regexWidth = Math.max(regexWidth - consumedWidth, 0);
                                 rgxConfig.bounds.x = regexX;
                                 rgxConfig.bounds.width = regexWidth;
                             }
                             // Add any regex bg color
-                            consumedWidth = Math.ceil(gc.measureText(result.value[0]).width);
+                            consumedWidth = gc.measureText(result.value[0]).width;
                             layerColors(gc, newBgColor, regexX, y, consumedWidth, height, foundationColor);
                             // render line
                             gc.cache.fillStyle = reg.format.color !== undefined ? reg.format.color : textColor;
