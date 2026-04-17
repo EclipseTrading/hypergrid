@@ -548,6 +548,21 @@ var Hypergrid = Base.extend('Hypergrid', {
         this.renderer.computeCellsBounds();
     },
 
+    /**
+     * @memberOf Hypergrid#
+     * @summary Calculate visible rows and columns count without full bounds computation.
+     * @desc This is a lightweight method that counts how many rows and columns can fit
+     * in the current viewport without performing the expensive bounds calculation that
+     * creates detailed coordinate objects. Useful for quick visibility checks or
+     * analytics without triggering a full render cycle.
+     * @returns {{visibleColumns: number, visibleRows: number}} Object containing:
+     * - visibleColumns: Number of columns that can fit in viewport (including internal columns)
+     * - visibleRows: Number of rows that can fit in viewport across all subgrids
+     */
+    calculateVisibleCounts: function() {
+        return this.renderer.calculateVisibleCounts();
+    },
+
     setFormatter: function(options) {
         options = options || {};
         this.localization = new Localization(

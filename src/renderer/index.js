@@ -247,6 +247,130 @@ var Renderer = Base.extend('Renderer', {
 
     /**
      * @memberOf Renderer.prototype
+     * @summary Calculate how many rows and columns can fit in the viewport.
+     * @desc This is a lightweight alternative to computeCellsBounds when you only need counts.
+     * It calculates the maximum number of rows and columns that can fit in the viewport
+     * based on default row height and actual column widths, without considering data availability.
+     * @returns {{visibleColumns: number, visibleRows: number}} Object with counts of visible columns and rows.
+     */
+    calculateVisibleCounts: function() {
+        var bounds = this.getBounds();
+        if (!bounds) {
+            return { visibleColumns: 0, visibleRows: 0 };
+        }
+
+        var grid = this.grid,
+            behavior = grid.behavior,
+            gridProps = grid.properties,
+
+            scrollLeft = grid.getHScrollValue(),
+
+            fixedColumnCount = grid.getFixedColumnCount(),
+            fixedRowCount = grid.getFixedRowCount(),
+
+            hasTreeColumn = behavior.hasTreeColumn(),
+            treeColumnIndex = behavior.treeColumnIndex,
+
+            borderBox = gridProps.boxSizing === 'border-box',
+            lineGapV = borderBox ? 0 : gridProps.gridLinesVWidth,
+            lineGapH = borderBox ? 0 : gridProps.gridLinesHWidth,
+
+            start = behavior.leftMostColIndex,
+            numOfInternalCols = 0,
+
+            totalColumns = grid.getColumnCount(),
+
+            viewportWidth = bounds.width || grid.canvas.width,
+            viewportHeight = bounds.height,
+
+            visibleColumnCount = 0,
+            visibleRowCount = 0,
+            x = 0,
+            y = 0,
+            c, vx, columnWidth,
+            defaultRowHeight = gridProps.defaultRowHeight,
+            headerRowCount = grid.getHeaderRowCount(),
+            fixedHeight = 0,
+            i;
+
+        // Count internal columns
+        if (gridProps.showRowNumbers) {
+            numOfInternalCols += 1;
+        }
+        if (hasTreeColumn) {
+            numOfInternalCols += 1;
+        }
+
+        // Calculate visible columns (same as before - columns have actual widths)
+        for (c = start; c < totalColumns && x <= viewportWidth; c++) {
+            if (!hasTreeColumn && c === treeColumnIndex) {
+                continue;
+            }
+
+            if (x) {
+                x += lineGapV;
+            }
+
+            vx = c;
+            if (c >= fixedColumnCount) {
+                vx += scrollLeft;
+            }
+            if (vx >= totalColumns) {
+                break; // scrolled beyond last column
+            }
+
+            columnWidth = Math.ceil(behavior.getColumnWidth(vx));
+            x += columnWidth;
+
+            if (x <= viewportWidth) {
+                visibleColumnCount++;
+            }
+        }
+
+        // Calculate height consumed by header rows
+        for (i = 0; i < headerRowCount; i++) {
+            if (i > 0) {
+                y += lineGapH;
+            }
+            y += defaultRowHeight;
+        }
+
+        // // Calculate height consumed by fixed rows
+        // for (i = 0; i < fixedRowCount; i++) {
+        //     y += lineGapH;
+        //     y += defaultRowHeight;
+        // }
+
+        fixedHeight = y;
+
+        // Calculate how many scrollable rows can fit in remaining viewport height
+        // using default row height
+        var remainingHeight = viewportHeight - fixedHeight;
+        var rowsInViewport = 0;
+
+        y = 0;
+        while (y < remainingHeight) {
+            if (rowsInViewport > 0) {
+                y += lineGapH;
+            }
+            y += defaultRowHeight;
+
+            if (y <= remainingHeight) {
+                rowsInViewport++;
+            }
+        }
+
+        // Total visible rows =  fixed rows + scrollable rows that fit
+        visibleRowCount =  fixedRowCount + rowsInViewport;
+
+        return {
+            visibleColumns: visibleColumnCount + numOfInternalCols,
+            visibleRows: visibleRowCount
+        };
+    },
+
+    /**
+     * @memberOf Renderer.prototype
      * @param {CellEvent|number} x - CellEvent object or grid column coordinate.
      * @param {number} [y] - Grid row coordinate. Omit if `xOrCellEvent` is a CellEvent.
      * @returns {Rectangle} Bounding rect of cell with the given coordinates.
@@ -1186,14 +1310,17 @@ function fetchCompletion(gc, fetchError) {
  * @this {Renderer}
  */
  function computeCellsBounds() {
+    // Get x and y scroll
     var scrollTop = this.getScrollTop(),
         scrollLeft = this.getScrollLeft(),
 
+        // get the width and height of the grid
         bounds = this.getBounds(),
         grid = this.grid,
         behavior = grid.behavior,
         hasTreeColumn = behavior.hasTreeColumn(),
         treeColumnIndex = behavior.treeColumnIndex,
+
 
         editorCellEvent = grid.cellEditor && grid.cellEditor.event,
 
@@ -1258,6 +1385,7 @@ function fetchCompletion(gc, fetchError) {
         numOfInternalCols += 1;
     }
 
+    // There's fixed configuration for the amount of rows -> This means we can control the amount of rows to render if possible
     if (fixedColumnCount) {
         fixedColumnIndex = fixedColumnCount;
     }
@@ -1348,6 +1476,7 @@ function fetchCompletion(gc, fetchError) {
 
         x += width;
 
+        // For drag and drop of columns, we want to show the insertion indicator between the columns. So we calculate the  insertion bounds based on the column widths.
         insertionBoundsCursor += Math.round(width / 2) + previousInsertionBoundsCursorValue;
         this.insertionBounds.push(insertionBoundsCursor);
         previousInsertionBoundsCursorValue = Math.round(width / 2);
