@@ -75,7 +75,7 @@ export class Drag extends FeatureBase {
 
         var cell = grid.getGridCellFromMousePoint(event.detail.mouse)
 
-        const upperHalf = cell.cellEvent.bounds.y + cell.cellEvent.bounds.height / 2 > event.detail.primitiveEvent.y
+        const upperHalf = cell.cellEvent.bounds.y + cell.cellEvent.bounds.height / 2 > event.detail.primitiveEvent.offsetY
         const hint_y = upperHalf ? cell.cellEvent.bounds.y : cell.cellEvent.bounds.y + cell.cellEvent.bounds.height
 
         const col = grid.renderer.visibleColumnsByIndex[grid.renderer.visibleColumnsByIndex.length - 1]

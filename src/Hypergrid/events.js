@@ -318,8 +318,8 @@ exports.mixin = {
 
     fireSyntheticDropEvent: function(dropEvent) {
         var dropIndex = this.getRowIndexFromMousePoint({
-            x: dropEvent.detail.primitiveEvent.x,
-            y: dropEvent.detail.primitiveEvent.y
+            x: dropEvent.detail.primitiveEvent.offsetX,
+            y: dropEvent.detail.primitiveEvent.offsetY
         });
 
         return dispatchGridEvent.call(this, 'fin-drop', {
