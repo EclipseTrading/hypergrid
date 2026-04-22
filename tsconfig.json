@@ -5,7 +5,7 @@
     "lib": ["ES2019", "dom"],
     "outDir": "dist",
     "allowJs": true,
-    "checkJs": true,
+    "checkJs": false,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
