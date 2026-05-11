@@ -28,6 +28,7 @@ var bundleRows = require('./bundle-rows');
 function paintCellsByColumnsAndRows(gc) {
     var grid = this.grid,
         gridProps = grid.properties,
+        transposed = gridProps.transposed,
         prefillColor, rowPrefillColors, gridPrefillColor = gridProps.backgroundColor,
         cellEvent,
         rowBundle, rowBundles,
@@ -41,8 +42,13 @@ function paintCellsByColumnsAndRows(gc) {
         preferredWidth,
         columnClip,
         // clipToGrid,
-        viewWidth = C ? visibleColumns[C - 1].right : 0,
-        viewHeight = R ? visibleRows[R - 1].bottom : 0;
+        // When transposed, swap viewWidth/viewHeight calculation
+        viewWidth = transposed
+            ? (R ? visibleRows[R - 1].bottom : 0)
+            : (C ? visibleColumns[C - 1].right : 0),
+        viewHeight = transposed
+            ? (C ? visibleColumns[C - 1].right : 0)
+            : (R ? visibleRows[R - 1].bottom : 0);
 
     gc.clearRect(0, 0, this.bounds.width, this.bounds.height);
 
@@ -68,12 +74,22 @@ function paintCellsByColumnsAndRows(gc) {
         rowPrefillColors = this.rowPrefillColors;
         for (r = rowBundles.length; r--;) {
             rowBundle = rowBundles[r];
-            gc.clearFill(0, rowBundle.top, viewWidth, rowBundle.bottom - rowBundle.top, rowBundle.backgroundColor);
+            // When transposed, row bundles become vertical (column-like)
+            if (transposed) {
+                gc.clearFill(rowBundle.top, 0, rowBundle.bottom - rowBundle.top, viewHeight, rowBundle.backgroundColor);
+            } else {
+                gc.clearFill(0, rowBundle.top, viewWidth, rowBundle.bottom - rowBundle.top, rowBundle.backgroundColor);
+            }
         }
     } else {
         for (columnBundles = this.columnBundles, c = columnBundles.length; c--;) {
             columnBundle = columnBundles[c];
-            gc.clearFill(columnBundle.left, 0, columnBundle.right - columnBundle.left, viewHeight, columnBundle.backgroundColor);
+            // When transposed, column bundles become horizontal (row-like)
+            if (transposed) {
+                gc.clearFill(0, columnBundle.left, viewWidth, columnBundle.right - columnBundle.left, columnBundle.backgroundColor);
+            } else {
+                gc.clearFill(columnBundle.left, 0, columnBundle.right - columnBundle.left, viewHeight, columnBundle.backgroundColor);
+            }
         }
     }
 
@@ -91,8 +107,13 @@ function paintCellsByColumnsAndRows(gc) {
         }
 
         // Optionally clip to visible portion of column to prevent text from overflowing to right.
+        // When transposed, clip vertically instead of horizontally
         columnClip = vc.column.properties.columnClip;
-        gc.clipSave(columnClip || columnClip === null && c === cLast, 0, 0, vc.right, viewHeight);
+        if (transposed) {
+            gc.clipSave(columnClip || columnClip === null && c === cLast, 0, 0, viewWidth, vc.right);
+        } else {
+            gc.clipSave(columnClip || columnClip === null && c === cLast, 0, 0, vc.right, viewHeight);
+        }
 
         // For each row of each subgrid (of each column)...
         for (preferredWidth = r = 0; r < R; r++, p++) {

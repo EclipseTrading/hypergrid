@@ -162,9 +162,14 @@ export class ColumnMoving extends FeatureBase {
             this.beginGridScrolling(grid, action)
         }
 
-        this.scrollVelocity = targetPoint.x < 0
+        // When transposed, columns scroll vertically (use y instead of x)
+        const transposed = grid.properties.transposed;
+        const pos = transposed ? targetPoint.y : targetPoint.x;
+        const size = transposed ? grid.getBounds().height : grid.getBounds().width;
+
+        this.scrollVelocity = pos < 0
             ? -1
-            : targetPoint.x > grid.getBounds().width
+            : pos > size
                 ? 1
                 : 0
     }
@@ -196,13 +201,21 @@ export class ColumnMoving extends FeatureBase {
         dragContext.clearRect(0, 0, grid.canvas.width, grid.canvas.height)
 
         if (dragAction !== null) {
+            const transposed = grid.properties.transposed;
 
             if (dragAction.type == DragActionType.Move) {
-                const indicatorX = dragAction.location === MoveLocation.Before
+                const indicatorPos = dragAction.location === MoveLocation.Before
                     ? dragAction.target.left
                     : dragAction.target.right
                 dragContext.fillStyle = "rgba(50, 50, 255, 1)"
-                dragContext.fillRect(indicatorX, 0, 2, grid.canvas.height)
+
+                if (transposed) {
+                    // When transposed, columns are horizontal bands - draw horizontal indicator
+                    dragContext.fillRect(0, indicatorPos, grid.canvas.width, 2)
+                } else {
+                    // Normal mode - draw vertical indicator
+                    dragContext.fillRect(indicatorPos, 0, 2, grid.canvas.height)
+                }
             }
 
             const dragCol = grid.renderer.getVisibleColumn(this.dragCol.columnIndex)
@@ -210,7 +223,14 @@ export class ColumnMoving extends FeatureBase {
                 dragContext.fillStyle = dragAction.type == DragActionType.Delete
                     ? "rgba(255, 50, 50, 0.2)"
                     : "rgba(50, 50, 255, 0.2)"
-                dragContext.fillRect(dragCol.left, 0, dragCol.width, grid.canvas.height)
+
+                if (transposed) {
+                    // When transposed, highlight the horizontal band
+                    dragContext.fillRect(0, dragCol.left, grid.canvas.width, dragCol.width)
+                } else {
+                    // Normal mode - highlight the vertical column
+                    dragContext.fillRect(dragCol.left, 0, dragCol.width, grid.canvas.height)
+                }
             }
         }
     }
@@ -254,7 +274,8 @@ export class ColumnMoving extends FeatureBase {
             event.visibleColumn,
             grid.getBounds(),
             event.gridPoint,
-            event.mousePoint
+            event.mousePoint,
+            grid.properties.transposed
         )
     }
 
@@ -263,7 +284,8 @@ export class ColumnMoving extends FeatureBase {
         overCol: VisibleColumn,
         gridBounds: Rectangle,
         gridPoint: Point,
-        mousePoint: Point): ColumnDragAction {
+        mousePoint: Point,
+        transposed?: boolean): ColumnDragAction {
 
 
         if (!gridBounds.contains(gridPoint)) {
@@ -273,13 +295,17 @@ export class ColumnMoving extends FeatureBase {
             }
         }
 
+        // When transposed, use y coordinate instead of x for position checks
+        const gridPos = transposed ? gridPoint.y : gridPoint.x;
         const lower = dragCol.left - overCol.width / 2
         const upper = dragCol.right + overCol.width / 2
-        const inMoveRange = !dragCol.isOnScreen || gridPoint.x < lower || gridPoint.x > upper
+        const inMoveRange = !dragCol.isOnScreen || gridPos < lower || gridPos > upper
         if (!inMoveRange || overCol.index < 0) {
             return { type: DragActionType.None }
         }
 
+        // mousePoint.x is already swapped for transposed mode, so it represents
+        // position within the column dimension
         const location = mousePoint.x > overCol.width / 2
             ? MoveLocation.After
             : MoveLocation.Before

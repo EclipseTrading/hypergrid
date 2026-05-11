@@ -61,12 +61,48 @@ var cellEventProperties = Object.defineProperties({}, { // all props non-enumera
          * @this {any} TODO - should be CellEvent
          */
         get: function() {
-            return this._bounds || (this._bounds = {
+            if (this._bounds) {
+                return this._bounds;
+            }
+
+            // When transposed, use transposedBounds for painting but keep logical bounds
+            // for feature interactions (selection, resizing, etc.)
+            this._bounds = {
                 x: this.visibleColumn.left,
                 y: this.visibleRow.top,
                 width: this.visibleColumn.width,
                 height: this.visibleRow.height
-            });
+            };
+            return this._bounds;
+        }
+    },
+
+    /**
+     * The visual bounds of the cell for painting when transposed.
+     * In transposed mode, columns are rendered as horizontal bands and rows as vertical bands.
+     * @property {number} x
+     * @property {number} y
+     * @property {number} width
+     * @property {number} height
+     * @memberOf CellEvent#
+     */
+    transposedBounds: {
+        /**
+         * @this {any} TODO - should be CellEvent
+         */
+        get: function() {
+            if (this._transposedBounds) {
+                return this._transposedBounds;
+            }
+
+            // Swap x/y and width/height for transposed rendering
+            this._transposedBounds = {
+                x: this.visibleRow.top,
+                y: this.visibleColumn.left,
+                width: this.visibleRow.height,
+                height: this.visibleColumn.width
+            };
+            return this._transposedBounds;
         }
     },
 
@@ -172,6 +208,7 @@ var cellEventProperties = Object.defineProperties({}, { // all props non-enumera
             this._columnProperties = undefined;
             this._cellOwnProperties = undefined;
             this._bounds = undefined;
+            this._transposedBounds = undefined;
 
             // partial render support
             this.snapshot = [];

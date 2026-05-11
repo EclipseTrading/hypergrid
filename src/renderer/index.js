@@ -304,11 +304,22 @@ var Renderer = Base.extend('Renderer', {
             isPseudoCol = false,
             vrs = this.visibleRows,
             vcs = this.visibleColumns,
+            transposed = this.properties.transposed,
             firstColumn = vcs[this.grid.behavior.leftMostColIndex],
-            inFirstColumn = firstColumn && x < firstColumn.right,
-            vc = inFirstColumn ? firstColumn : vcs.findWithNeg(function(vc) { return x < vc.right; }),
-            vr = vrs.find(function(vr) { return y < vr.bottom; }),
+            inFirstColumn,
+            vc, vr,
             result = {fake: false};
+
+        if (transposed) {
+            // When transposed, x maps to rows (visual columns) and y maps to columns (visual rows)
+            inFirstColumn = firstColumn && y < firstColumn.right;
+            vc = inFirstColumn ? firstColumn : vcs.findWithNeg(function(vc) { return y < vc.right; });
+            vr = vrs.find(function(vr) { return x < vr.bottom; });
+        } else {
+            inFirstColumn = firstColumn && x < firstColumn.right;
+            vc = inFirstColumn ? firstColumn : vcs.findWithNeg(function(vc) { return x < vc.right; });
+            vr = vrs.find(function(vr) { return y < vr.bottom; });
+        }
 
         //default to last row and col
         if (vr) {
@@ -329,7 +340,14 @@ var Renderer = Base.extend('Renderer', {
             var cellEvent = new this.grid.behavior.CellEvent(vc.columnIndex, vr.index),
                 cellEventFromPool = this.findCell(cellEvent);
             result.cellEvent = cellEventFromPool ? Object.create(cellEventFromPool) : cellEvent;
-            result.cellEvent.mousePoint = this.grid.newPoint(x - vc.left, y - vr.top);
+            // Mouse point relative to cell's logical bounds (not visual)
+            // When transposed, screen y position maps to logical x (column position)
+            // and screen x position maps to logical y (row position)
+            if (transposed) {
+                result.cellEvent.mousePoint = this.grid.newPoint(y - vc.left, x - vr.top);
+            } else {
+                result.cellEvent.mousePoint = this.grid.newPoint(x - vc.left, y - vr.top);
+            }
         }
 
         if (isPseudoCol || isPseudoRow) {
@@ -341,12 +359,14 @@ var Renderer = Base.extend('Renderer', {
     },
 
     getRowIndexFromMousePoint: function(point) {
-        var y = point.y
-        var vrs = this.visibleRows
-        var vr = vrs.find(function(vr) { return y < vr.bottom; });
+        var transposed = this.properties.transposed;
+        // When transposed, rows are displayed as vertical bands, so use x coordinate
+        var coord = transposed ? point.x : point.y;
+        var vrs = this.visibleRows;
+        var vr = vrs.find(function(vr) { return coord < vr.bottom; });
 
         if (vr !== undefined) {
-            var onLowerHalf = y > (vr.top + (vr.bottom - vr.top) / 2)
+            var onLowerHalf = coord > (vr.top + (vr.bottom - vr.top) / 2);
             return onLowerHalf ? vr.index + 1 : vr.index;
         }
 
@@ -873,11 +893,13 @@ var Renderer = Base.extend('Renderer', {
 
         if (C && R) {
             var gridProps = this.properties,
+                transposed = gridProps.transposed,
                 C1 = C - 1,
                 R1 = R - 1,
                 rowHeader,
-                viewWidth = visibleColumns[C1].right,
-                viewHeight = visibleRows[R1].bottom,
+                // When transposed, swap viewWidth/viewHeight
+                viewWidth = transposed ? visibleRows[R1].bottom : visibleColumns[C1].right,
+                viewHeight = transposed ? visibleColumns[C1].right : visibleRows[R1].bottom,
                 gridLinesVColor = gridProps.gridLinesVColor,
                 gridLinesHColor = gridProps.gridLinesHColor,
                 borderBox = gridProps.boxSizing === 'border-box';
@@ -912,12 +934,21 @@ var Renderer = Base.extend('Renderer', {
                                 x -= gridLinesVWidth;
                             }
 
-                            // draw a single vertical grid line between both header and data cells OR a line segment in header only
-                            gc.fillRect(x, lineTop, gridLinesVWidth, height);
+                            // When transposed, vertical lines become horizontal (draw at y=x, swap width/height)
+                            if (transposed) {
+                                gc.fillRect(lineTop, x, height, gridLinesVWidth);
+                            } else {
+                                // draw a single vertical grid line between both header and data cells OR a line segment in header only
+                                gc.fillRect(x, lineTop, gridLinesVWidth, height);
+                            }
 
                             // when above drew a line segment in header (vc.bottom defined AND higher up), draw a second vertical grid line between data cells
                             if (gridProps.gridLinesUserDataArea && vc.bottom < userDataAreaTop) {
-                                gc.fillRect(x, userDataAreaTop, gridLinesVWidth, bottom - userDataAreaTop);
+                                if (transposed) {
+                                    gc.fillRect(userDataAreaTop, x, bottom - userDataAreaTop, gridLinesVWidth);
+                                } else {
+                                    gc.fillRect(x, userDataAreaTop, gridLinesVWidth, bottom - userDataAreaTop);
+                                }
                             }
                         }
                     });
@@ -942,7 +973,12 @@ var Renderer = Base.extend('Renderer', {
                         if (borderBox) {
                             y -= gridLinesHWidth;
                         }
-                        gc.fillRect(left, y, right - left, gridLinesHWidth);
+                        // When transposed, horizontal lines become vertical (draw at x=y, swap width/height)
+                        if (transposed) {
+                            gc.fillRect(y, left, gridLinesHWidth, right - left);
+                        } else {
+                            gc.fillRect(left, y, right - left, gridLinesHWidth);
+                        }
                     }
                 });
             }
@@ -950,11 +986,21 @@ var Renderer = Base.extend('Renderer', {
             const printRowGapLine = (gap) => {
                 gc.cache.fillStyle = gridProps.fixedLinesHColor || gridLinesHColor;
                 edgeWidth = gridProps.fixedLinesHEdge;
-                if (edgeWidth) {
-                    gc.fillRect(0, gap.top, viewWidth, edgeWidth);
-                    gc.fillRect(0, gap.bottom - edgeWidth, viewWidth, edgeWidth);
+                if (transposed) {
+                    // When transposed, horizontal gap lines become vertical
+                    if (edgeWidth) {
+                        gc.fillRect(gap.top, 0, edgeWidth, viewHeight);
+                        gc.fillRect(gap.bottom - edgeWidth, 0, edgeWidth, viewHeight);
+                    } else {
+                        gc.fillRect(gap.top, 0, gap.bottom - gap.top, viewHeight);
+                    }
                 } else {
-                    gc.fillRect(0, gap.top, viewWidth, gap.bottom - gap.top);
+                    if (edgeWidth) {
+                        gc.fillRect(0, gap.top, viewWidth, edgeWidth);
+                        gc.fillRect(0, gap.bottom - edgeWidth, viewWidth, edgeWidth);
+                    } else {
+                        gc.fillRect(0, gap.top, viewWidth, gap.bottom - gap.top);
+                    }
                 }
             }
             // draw fixed rule lines over grid rule lines
@@ -973,11 +1019,21 @@ var Renderer = Base.extend('Renderer', {
                 if ((gap = visibleColumns.gap)) {
                     gc.cache.fillStyle = gridProps.fixedLinesVColor || gridLinesVColor;
                     edgeWidth = gridProps.fixedLinesVEdge;
-                    if (edgeWidth) {
-                        gc.fillRect(gap.left, 0, edgeWidth, viewHeight);
-                        gc.fillRect(gap.right - edgeWidth, 0, edgeWidth, viewHeight);
+                    if (transposed) {
+                        // When transposed, vertical gap lines become horizontal
+                        if (edgeWidth) {
+                            gc.fillRect(0, gap.left, viewWidth, edgeWidth);
+                            gc.fillRect(0, gap.right - edgeWidth, viewWidth, edgeWidth);
+                        } else {
+                            gc.fillRect(0, gap.left, viewWidth, gap.right - gap.left);
+                        }
                     } else {
-                        gc.fillRect(gap.left, 0, gap.right - gap.left, viewHeight);
+                        if (edgeWidth) {
+                            gc.fillRect(gap.left, 0, edgeWidth, viewHeight);
+                            gc.fillRect(gap.right - edgeWidth, 0, edgeWidth, viewHeight);
+                        } else {
+                            gc.fillRect(gap.left, 0, gap.right - gap.left, viewHeight);
+                        }
                     }
                 }
             }
@@ -1040,7 +1096,8 @@ var Renderer = Base.extend('Renderer', {
         config.isRowHovered = cellEvent.isRowHovered;
         config.isHeaderCellHovered = cellEvent.isHeaderCellHovered;
         config.isCellHovered = cellEvent.isCellHovered;
-        config.bounds = cellEvent.bounds;
+        // Use transposedBounds for painting when transposed, but logical bounds for everything else
+        config.bounds = grid.properties.transposed ? cellEvent.transposedBounds : cellEvent.bounds;
         config.isCellSelected = isCellSelected;
         config.isRowSelected = isRowSelected;
         config.isColumnSelected = isColumnSelected;

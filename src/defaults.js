@@ -1298,6 +1298,15 @@ var defaults = {
      */
     gridRenderer: 'by-columns-and-rows',
 
+    /**
+     * When true, transposes the grid display so columns are rendered as rows and rows as columns.
+     * This is a display-only transformation - the underlying data model and column/row access remain unchanged.
+     * @default
+     * @type {boolean}
+     * @memberOf module:defaults
+     */
+    transposed: false,
+
     /********** HOVER COLORS **********/
 
     /** @typedef hoverColors

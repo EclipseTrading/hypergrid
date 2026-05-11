@@ -29,10 +29,14 @@ export class ColumnResizing extends FeatureBase {
      * @desc get the mouse x,y coordinate
      * @returns {number}
      * @param {MouseEvent} event - the mouse event to query
+     * @param {Hypergrid} grid - the grid instance
      */
-    getMouseValue(event) {
+    getMouseValue(event, grid?) {
+        // When transposed, column width is displayed vertically, so track Y instead of X
         // @ts-ignore
-        return event.primitiveEvent.detail.mouse.x;
+        const transposed = grid?.properties?.transposed || event.properties?.transposed;
+        // @ts-ignore
+        return transposed ? event.primitiveEvent.detail.mouse.y : event.primitiveEvent.detail.mouse.x;
     }
 
     /**
@@ -51,10 +55,13 @@ export class ColumnResizing extends FeatureBase {
     /**
      * @memberOf ColumnResizing.prototype
      * @desc return the cursor name
+     * @param {Hypergrid} grid - the grid instance
      * @returns {string}
      */
-    getCursorName() {
-        return 'col-resize';
+    getCursorName(grid?) {
+        // When transposed, columns resize vertically, so use row-resize cursor
+        const transposed = grid?.properties?.transposed;
+        return transposed ? 'row-resize' : 'col-resize';
     }
 
     /**
@@ -64,7 +71,7 @@ export class ColumnResizing extends FeatureBase {
      */
     handleMouseDrag(grid, event) {
         if (this.dragColumn) {
-            var delta = this.getMouseValue(event) - this.dragStart,
+            var delta = this.getMouseValue(event, grid) - this.dragStart,
                 dragWidth = this.dragStartWidth + delta,
                 nextWidth = this.nextStartWidth - delta;
             if (!this.nextColumn) { // nextColumn et al instance vars defined when resizeColumnInPlace (by handleMouseDown)
@@ -112,7 +119,7 @@ export class ColumnResizing extends FeatureBase {
                 this.dragStartWidth = event.bounds.width;
             }
 
-            this.dragStart = this.getMouseValue(event);
+            this.dragStart = this.getMouseValue(event, grid);
 
             if (this.dragColumn.properties.resizeColumnInPlace) {
                 gridColumnIndex += 1;
@@ -173,7 +180,7 @@ export class ColumnResizing extends FeatureBase {
                 this.next.handleMouseMove(grid, event);
             }
 
-            this.cursor = event.isHeaderRow && this.overAreaDivider(grid, event) ? this.getCursorName() : null;
+            this.cursor = event.isHeaderRow && this.overAreaDivider(grid, event) ? this.getCursorName(grid) : null;
         }
     }
 
