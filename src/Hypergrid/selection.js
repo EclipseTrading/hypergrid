@@ -155,6 +155,20 @@ exports.mixin = {
 
     /**
      * @memberOf Hypergrid#
+     * @summary Handle single cell selection.
+     * @param {number} x - origin x
+     * @param {number} y - origin y
+     * @param {Boolean} [silent=false] - whether to trigger selection changed event
+     */
+    selectSingleCell: function(x, y, silent) {
+        this.clearSelections();
+        this.select(x, y, 0, 0, silent);
+        this.setMouseDown(this.newPoint(x, y));
+        this.setDragExtent(this.newPoint(0, 0));
+    },
+
+    /**
+     * @memberOf Hypergrid#
      * @returns {boolean} Given point is selected.
      * @param {number} x - The horizontal coordinate.
      * @param {number} y - The vertical coordinate.
@@ -416,10 +430,7 @@ exports.mixin = {
         ) {
             x = vc.columnIndex;
             y = vr.rowIndex;
-            this.clearSelections();
-            this.select(x, y, 0, 0);
-            this.setMouseDown(this.newPoint(x, y));
-            this.setDragExtent(this.newPoint(0, 0));
+            this.selectSingleCell(x, y);
             this.repaint();
         }
     },
@@ -434,8 +445,13 @@ exports.mixin = {
             var origin = selections[0].origin;
             x = vc.columnIndex;
             y = vr.rowIndex;
-            this.setDragExtent(this.newPoint(x - origin.x, y - origin.y));
-            this.select(origin.x, origin.y, x - origin.x, y - origin.y);
+            if (this.properties.singleCellSelection) {
+                this.selectSingleCell(x, y);
+            }
+            else{
+                this.setDragExtent(this.newPoint(x - origin.x, y - origin.y));
+                this.select(origin.x, origin.y, x - origin.x, y - origin.y);
+            }
             this.repaint();
         }
     },
@@ -458,7 +474,7 @@ exports.mixin = {
             this.scrollBy(columnCount, 0);
 
             this.clearSelections();
-            if (to) {
+            if (to && !this.properties.singleCellSelection) {
                 this.select(origin.x, origin.y, columnCount - origin.x - 1, extent.y);
             } else {
                 this.select(columnCount - 1, origin.y, 0, 0);
@@ -483,7 +499,7 @@ exports.mixin = {
                 extent = selection.extent;
 
             this.clearSelections();
-            if (to) {
+            if (to && !this.properties.singleCellSelection) {
                 this.select(origin.x, origin.y, -origin.x, extent.y);
             } else {
                 this.select(0, origin.y, 0, 0);
@@ -514,7 +530,11 @@ exports.mixin = {
                 rowCount = this.getRowCount();
 
             this.clearSelections();
-            this.select(origin.x, origin.y, columnCount - origin.x - 1, rowCount - origin.y - 1);
+            if (this.properties.singleCellSelection) {
+                this.select(columnCount - 1, rowCount - 1, 0, 0);
+            } else {
+                this.select(origin.x, origin.y, columnCount - origin.x - 1, rowCount - origin.y - 1);
+            }
             // this.scrollBy(columnCount, rowCount);
             this.repaint();
         }
@@ -681,6 +701,10 @@ exports.mixin = {
      * @memberOf Hypergrid#
      */
     extendSelect: function(offsetX, offsetY) {
+        if (this.properties.singleCellSelection) {
+            return false;
+        }
+
         var maxColumns = this.getColumnCount() - 1,
             maxRows = this.getRowCount() - 1,
 

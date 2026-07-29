@@ -104,6 +104,11 @@ var CellSelection = Feature.extend('CellSelection', {
             return;
         }
 
+        if (this.dragging && grid.properties.singleCellSelection) {
+            this.dragging = false;
+            return;
+        }
+
         if (this.dragging && grid.properties.cellSelection && !event.primitiveEvent.detail.isRightClick) {
             this.currentDrag = event.primitiveEvent.detail.mouse;
             this.lastDragCell = grid.newPoint(event.gridCell.x, event.dataCell.y);
@@ -159,6 +164,10 @@ var CellSelection = Feature.extend('CellSelection', {
      * @param {Array} keys - array of the keys that are currently pressed down
      */
     handleMouseDragCellSelection: function(grid, gridCell, keys, silent) {
+        if (grid.properties.singleCellSelection) {
+            return;
+        }
+
         var x = Math.max(0, gridCell.x),
             y = Math.max(0, gridCell.y),
             previousDragExtent = grid.getDragExtent(),
@@ -207,6 +216,11 @@ var CellSelection = Feature.extend('CellSelection', {
      * @param {Hypergrid} grid
      */
     scrollDrag: function(grid) {
+        if (grid.properties.singleCellSelection) {
+            grid.setScrollingNow(false);
+            return;
+        }
+
         if (!grid.isScrollingNow()) {
             return;
         }
@@ -272,6 +286,12 @@ var CellSelection = Feature.extend('CellSelection', {
 
         // when outside of the grid do nothing
         if (x < 0 || y < 0) {
+            return;
+        }
+
+        if (grid.properties.singleCellSelection) {
+            grid.selectSingleCell(x, y);
+            grid.repaint();
             return;
         }
 
@@ -424,6 +444,11 @@ var CellSelection = Feature.extend('CellSelection', {
      * @param {number} offsetY - y coordinate to start at
      */
     moveShiftSelect: function(grid, offsetX, offsetY) {
+        // Disable keyboard based selection
+        if (grid.properties.singleCellSelection) {
+            return;
+        }
+
         if (grid.extendSelect(offsetX, offsetY)) {
             this.pingAutoScroll();
         }
