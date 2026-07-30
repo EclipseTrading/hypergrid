@@ -1010,6 +1010,13 @@ var defaults = {
      */
     cellSelection: true,
 
+    /** Clicking in a cell only selects that cell; range selection via shift-click and drag is disabled.
+     * @default
+     * @type {boolean}
+     * @memberOf module:defaults
+     */
+    singleCellSelection: false,
+
     /** Clicking in a column header (top row) "selects" the column; the entire column is added to the select region and repainted with "column selection" colors.
      * @default
      * @type {boolean}
