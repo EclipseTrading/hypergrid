@@ -121,6 +121,8 @@ var Renderer = Base.extend('Renderer', {
 
         this.insertionBounds = [];
 
+        this.additionalTheoreticalDataRows = 0;
+
         this.cellEventPool = [];
     },
 
@@ -245,12 +247,10 @@ var Renderer = Base.extend('Renderer', {
         return this.visibleColumns.length - 1;
     },
 
-    /**
-     * @memberOf Renderer.prototype
-     * @param {CellEvent|number} x - CellEvent object or grid column coordinate.
-     * @param {number} [y] - Grid row coordinate. Omit if `xOrCellEvent` is a CellEvent.
-     * @returns {Rectangle} Bounding rect of cell with the given coordinates.
-     */
+    getTheoreticalRowsCount: function() {
+        return this.getVisibleRowsCount() + (this.additionalTheoreticalDataRows || 0);
+    },
+
     getBoundsOfCell: function(x, y) {
         var vc = this.visibleColumns[x],
             vr = this.visibleRows[y];
@@ -1183,6 +1183,10 @@ function fetchCompletion(gc, fetchError) {
  * painting the grid cells. this function is very fast, for thousand rows X 100 columns
  * on a modest machine taking usually 0ms and no more that 3 ms."
  *
+ * Assumption taken when evaluating computeCellBounds()
+ * - There are only one subgrid that are scrollable
+ * - There are only one data subgrid
+ *
  * @this {Renderer}
  */
  function computeCellsBounds() {
@@ -1240,7 +1244,14 @@ function fetchCompletion(gc, fetchError) {
         firstVX, lastVX,
         firstVY, lastVY,
         topR,
-        gap;
+        dataAreaEndY = Number.MAX_SAFE_INTEGER,
+        dataAreaEndR,
+        dataAvailableHeight,
+        gap,
+        additionalTheoreticalDataRows = 0,
+        remainingDataHeight,
+        nextDataRowGap,
+        theoreticalStride;
 
     if (editorCellEvent) {
         xEd = editorCellEvent.gridCell.x;
@@ -1396,6 +1407,11 @@ function fetchCompletion(gc, fetchError) {
         var availableHeight = subgrid.isData
             ? Y - reservedHeight
             : Y
+
+        if (scrollableSubgrid && g === datagridIndex) {
+            dataAvailableHeight = availableHeight;
+        }
+
         // For each row of each subgrid...
         for (R = r + subrows; r < R && y < availableHeight; r++) {
             if ((gap = scrollableSubgrid && r === fixedRowIndex)) {
@@ -1460,6 +1476,11 @@ function fetchCompletion(gc, fetchError) {
         if (scrollableSubgrid) {
             subrows = r - topR;
         }
+
+        if (scrollableSubgrid && g === datagridIndex) {
+            dataAreaEndY = y;
+            dataAreaEndR = r;
+        }
     }
 
     if (editorCellEvent) {
@@ -1475,6 +1496,19 @@ function fetchCompletion(gc, fetchError) {
         Math.min(lastVX - firstVX + 1, this.visibleColumns.length),
         Math.min(lastVY - firstVY + 1, this.visibleRows.length)
     );
+
+    // If the amount of height available from Data subgrid > end position of Y
+    if (dataAvailableHeight > dataAreaEndY) {
+        nextDataRowGap = dataAreaEndY ? (dataAreaEndR === fixedRowIndex ? fixedGapH : lineGapH) : 0;
+        remainingDataHeight = dataAvailableHeight - dataAreaEndY - nextDataRowGap;
+        theoreticalStride = gridProps.defaultRowHeight + lineGapH;
+
+        if (remainingDataHeight > 0 && theoreticalStride > 0) {
+            additionalTheoreticalDataRows = Math.floor(remainingDataHeight / theoreticalStride);
+        }
+    }
+
+    this.additionalTheoreticalDataRows = additionalTheoreticalDataRows;
 
     // Resize CellEvent pool
     var pool = this.cellEventPool,

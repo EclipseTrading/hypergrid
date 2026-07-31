@@ -2,5 +2,6 @@
     "cSpell.words": [
         "finbars",
         "Hypergrid"
-    ]
+    ],
+    "js/ts.tsdk.path": "node_modules\\typescript\\lib"
 }
