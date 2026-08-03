@@ -17,13 +17,19 @@ var ThumbwheelScrolling = Feature.extend('ThumbwheelScrolling', {
      * @param {Object} event - the event details
      */
     handleWheelMoved: function(grid, e) {
-        if (!grid.properties.scrollingEnabled) {
+        var hEnabled = grid.isHScrollingEnabled(),
+            vEnabled = grid.isVScrollingEnabled();
+
+        if (!hEnabled && !vEnabled) {
             return;
         }
 
         var primEvent = e.primitiveEvent,
             deltaX = Math.sign(primEvent.wheelDeltaX || -primEvent.deltaX),
             deltaY = Math.sign(primEvent.wheelDeltaY || -primEvent.deltaY);
+
+        deltaX = hEnabled ? deltaX : 0;
+        deltaY = vEnabled ? deltaY : 0;
 
         if (deltaX || deltaY) {
             grid.scrollBy(

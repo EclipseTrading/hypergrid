@@ -157,8 +157,11 @@ var RowSelection = Feature.extend('RowSelection', {
      * @param {Object} mouse - the event details
      */
     checkDragScroll: function(grid, mouse) {
+        if (!grid.isVScrollingEnabled()) {
+            return;
+        }
+
         if (
-            grid.properties.scrollingEnabled &&
             grid.getDataBounds().contains(mouse)
         ) {
             if (grid.isScrollingNow()) {
@@ -178,7 +181,7 @@ var RowSelection = Feature.extend('RowSelection', {
      * @param {Hypergrid} grid
      */
     scrollDrag: function(grid) {
-        if (!grid.isScrollingNow()) {
+        if (!grid.isScrollingNow() || !grid.isVScrollingEnabled()) {
             return;
         }
 
@@ -389,6 +392,25 @@ var RowSelection = Feature.extend('RowSelection', {
         } else {
             top += offsetY;
             bottom += offsetY;
+        }
+
+        if (!grid.isVScrollingEnabled()) {
+            var visibleRows = grid.renderer.visibleRows,
+                hasVisibleDataRow = false,
+                minVisibleRow = Infinity,
+                maxVisibleRow = -Infinity;
+
+            visibleRows.forEach(function(visibleRow) {
+                if (visibleRow.subgrid.isData) {
+                    hasVisibleDataRow = true;
+                    minVisibleRow = Math.min(minVisibleRow, visibleRow.rowIndex);
+                    maxVisibleRow = Math.max(maxVisibleRow, visibleRow.rowIndex);
+                }
+            });
+
+            if (!hasVisibleDataRow || top < minVisibleRow || bottom > maxVisibleRow) {
+                return;
+            }
         }
 
         if (top < 0 || bottom >= grid.getRowCount()) {

@@ -176,7 +176,7 @@ export class ColumnMoving extends FeatureBase {
 
     private beginGridScrolling(grid, action: ColumnDragAction) {
         setTimeout(() => {
-            if (!this.scrolling) {
+            if (!this.scrolling || !grid.isHScrollingEnabled()) {
                 return
             }
 

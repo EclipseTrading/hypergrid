@@ -676,8 +676,10 @@ exports.mixin = {
             maxViewableColumns = this.getVisibleColumnsCount() - 1,
             maxViewableRows = this.getVisibleRowsCount() - 1;
 
-        if (!this.properties.scrollingEnabled) {
+        if (!this.isHScrollingEnabled()) {
             maxColumns = Math.min(maxColumns, maxViewableColumns);
+        }
+        if (!this.isVScrollingEnabled()) {
             maxRows = Math.min(maxRows, maxViewableRows);
         }
 
@@ -717,8 +719,10 @@ exports.mixin = {
             newX = extent.x + offsetX,
             newY = extent.y + offsetY;
 
-        if (!this.properties.scrollingEnabled) {
+        if (!this.isHScrollingEnabled()) {
             maxColumns = Math.min(maxColumns, maxViewableColumns);
+        }
+        if (!this.isVScrollingEnabled()) {
             maxRows = Math.min(maxRows, maxViewableRows);
         }
 
