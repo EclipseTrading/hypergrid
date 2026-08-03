@@ -673,7 +673,13 @@ exports.mixin = {
         var maxColumns = this.getColumnCount() - 1,
             maxRows = this.getRowCount() - 1,
 
-            maxViewableColumns = this.getVisibleColumnsCount() - 1,
+            /**
+             * The reason why there's a difference in property calculation
+             * - this.renderer.visibleColumns.length - 1 is the last index of the visible columns
+             * - this.getVisibleRowsCount() - 1 is the last index of the visible rows, which internally -1 from the this.renderer.visibleRows.length - 1
+             * - This is because visibleRows includes the header rows, which are not part of the data rows, so we need to subtract 1 to get the last index of the visible data rows.
+             */
+            maxViewableColumns = this.renderer.visibleColumns.length - 1,
             maxViewableRows = this.getVisibleRowsCount() - 1;
 
         if (!this.isHScrollingEnabled()) {
@@ -710,8 +716,14 @@ exports.mixin = {
         var maxColumns = this.getColumnCount() - 1,
             maxRows = this.getRowCount() - 1,
 
+            /**
+             * The reason why there's a difference in property calculation
+             * - this.renderer.visibleColumns.length - 1 is the last index of the visible columns
+             * - this.getVisibleRowsCount() - 1 is the last index of the visible rows, which internally -1 from the this.renderer.visibleRows.length - 1
+             * - This is because visibleRows includes the header rows, which are not part of the data rows, so we need to subtract 1 to get the last index of the visible data rows.
+             */
             maxViewableColumns = this.renderer.visibleColumns.length - 1,
-            maxViewableRows = this.renderer.visibleRows.length - 1,
+            maxViewableRows = this.getVisibleRowsCount() - 1,
 
             origin = this.getMouseDown(),
             extent = this.getDragExtent(),

@@ -416,7 +416,7 @@ var ColumnSelection = Feature.extend('ColumnSelection', {
             mouseCorner = grid.getMouseDown().plus(extent),
             newX = mouseCorner.x + offsetX,
             maxColumns = grid.getColumnCount() - 1,
-            maxViewableColumns = grid.getVisibleColumnsCount() - 1;
+            maxViewableColumns = grid.renderer.visibleColumns.length - 1;
 
         if (!grid.isHScrollingEnabled()) {
             maxColumns = Math.min(maxColumns, maxViewableColumns);

@@ -491,12 +491,16 @@ exports.mixin = {
      * @returns {number}
      */
     pageUp: function () {
-        if (!this.isVScrollingEnabled()) {
-            return this.vScrollValue;
-        }
         var currentCell = this.lastSelection[0];
-        var rowUpIndex = this.renderer.getPageUpRow();
-        this.setVScrollValue(rowUpIndex);
+        var rowUpIndex;
+
+        if (this.isVScrollingEnabled()) {
+            rowUpIndex = this.renderer.getPageUpRow();
+            this.setVScrollValue(rowUpIndex);
+        } else {
+            rowUpIndex = Math.max(0, this.getVScrollValue());
+        }
+
         this.selectCell(currentCell.x, rowUpIndex, false);
         this.setMouseDown(this.newPoint(currentCell.x, rowUpIndex));
         this.repaint();
@@ -510,16 +514,20 @@ exports.mixin = {
      * @returns {number}
      */
     pageDown: function () {
-        if (!this.isVScrollingEnabled()) {
-            return this.vScrollValue;
-        }
         var maxRow = this.getRowCount() - 1;
         var currentCell = this.lastSelection[0];
-        var rowDownIndex = this.renderer.getPageDownRow();
-        if (currentCell.y - rowDownIndex >= 0) {
-            this.setVScrollValue(rowDownIndex);
-            rowDownIndex += this.getVisibleRowsCount() - 1;
+        var rowDownIndex;
+
+        if (this.isVScrollingEnabled()) {
+            rowDownIndex = this.renderer.getPageDownRow();
+            if (currentCell.y - rowDownIndex >= 0) {
+                this.setVScrollValue(rowDownIndex);
+                rowDownIndex += this.getVisibleRowsCount() - 1;
+            }
+        } else {
+            rowDownIndex = this.getVScrollValue() + this.getVisibleRowsCount() - 1;
         }
+
         rowDownIndex >= maxRow ? rowDownIndex = maxRow : undefined;
         this.selectCell(currentCell.x, rowDownIndex, false);
         this.setMouseDown(this.newPoint(currentCell.x, rowDownIndex));
@@ -533,13 +541,16 @@ exports.mixin = {
      * @desc Scroll entire page to most left. Select most-left cell
      */
     pageLeft: function () {
-        if (!this.isHScrollingEnabled()) {
-            return;
-        }
         var currentCell = this.lastSelection[0];
-        this.setHScrollValue(this.sbHScroller.range.min)
-        this.selectCell(0, currentCell.y, false);
-        this.setMouseDown(this.newPoint(0, currentCell.y));
+        var colIndex = 0;
+
+        if (this.isHScrollingEnabled()) {
+            this.setHScrollValue(this.sbHScroller.range.min)
+        }
+
+        this.selectCell(colIndex, currentCell.y, false);
+        this.setMouseDown(this.newPoint(colIndex, currentCell.y));
+        this.repaint();
     },
 
     /**
@@ -548,13 +559,19 @@ exports.mixin = {
      * @desc Scroll entire page to most right. Select most-right cell
      */
     pageRight: function () {
-        if (!this.isHScrollingEnabled()) {
-            return;
-        }
         var maxCol = this.numColumns - 1;
         var currentCell = this.lastSelection[0];
-        this.setHScrollValue(this.sbHScroller.range.max)
-        this.selectCell(maxCol, currentCell.y, false);
-        this.setMouseDown(this.newPoint(maxCol, currentCell.y));
+        var colIndex;
+
+        if (this.isHScrollingEnabled()) {
+            this.setHScrollValue(this.sbHScroller.range.max)
+            colIndex = maxCol;
+        } else {
+            colIndex = Math.min(maxCol, this.getHScrollValue() + this.getVisibleColumnsCount());
+        }
+
+        this.selectCell(colIndex, currentCell.y, false);
+        this.setMouseDown(this.newPoint(colIndex, currentCell.y));
+        this.repaint();
     },
 };
