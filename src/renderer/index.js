@@ -247,7 +247,7 @@ var Renderer = Base.extend('Renderer', {
         return this.visibleColumns.length - 1;
     },
 
-    getTheoreticalRowsCount: function() {
+    getMaxVisibleRowCount: function() {
         return this.getVisibleRowsCount() + (this.additionalTheoreticalDataRows || 0);
     },
 
@@ -1248,7 +1248,7 @@ function fetchCompletion(gc, fetchError) {
         dataAreaEndR,
         dataAvailableHeight,
         gap,
-        additionalTheoreticalDataRows = 0,
+        calculatedTheoreticalDataRow = 0,
         remainingDataHeight,
         nextDataRowGap,
         theoreticalStride;
@@ -1504,11 +1504,11 @@ function fetchCompletion(gc, fetchError) {
         theoreticalStride = gridProps.defaultRowHeight + lineGapH;
 
         if (remainingDataHeight > 0 && theoreticalStride > 0) {
-            additionalTheoreticalDataRows = Math.floor(remainingDataHeight / theoreticalStride);
+            calculatedTheoreticalDataRow = Math.floor(remainingDataHeight / theoreticalStride);
         }
     }
 
-    this.additionalTheoreticalDataRows = additionalTheoreticalDataRows;
+    this.additionalTheoreticalDataRows = calculatedTheoreticalDataRow;
 
     // Resize CellEvent pool
     var pool = this.cellEventPool,
