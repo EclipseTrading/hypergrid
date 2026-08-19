@@ -25,14 +25,25 @@ var TouchScrolling = Feature.extend('TouchScrolling', {
     handleDoubleClick: function() {},
 
     handleTouchMove: function(grid, event) {
+        var hEnabled = grid.isHScrollingEnabled(),
+            vEnabled = grid.isVScrollingEnabled();
+
+        if (!hEnabled && !vEnabled) {
+            return;
+        }
+
         var currentTouch = this.getTouchedCell(grid, event);
         var lastTouch = this.touches[this.touches.length - 1];
 
         var xOffset = (lastTouch.x - currentTouch.x) / lastTouch.width;
         var yOffset = (lastTouch.y - currentTouch.y) / lastTouch.height;
 
-        grid.sbHScroller.index += xOffset;
-        grid.sbVScroller.index += yOffset;
+        if (hEnabled) {
+            grid.sbHScroller.index += xOffset;
+        }
+        if (vEnabled) {
+            grid.sbVScroller.index += yOffset;
+        }
 
         if (this.touches.length >= TouchScrolling.MAX_TOUCHES) {
             this.touches.shift();
@@ -64,12 +75,18 @@ var TouchScrolling = Feature.extend('TouchScrolling', {
     },
 
     decelerateY: function(grid, startTouch, endTouch) {
+        if (!grid.isVScrollingEnabled()) {
+            return;
+        }
         var offset = endTouch.y - startTouch.y;
         var timeOffset = endTouch.timestamp - startTouch.timestamp;
         this.decelerate(grid.sbVScroller, offset, timeOffset);
     },
 
     decelerateX: function(grid, startTouch, endTouch) {
+        if (!grid.isHScrollingEnabled()) {
+            return;
+        }
         var offset = endTouch.x - startTouch.x;
         var timeOffset = endTouch.timestamp - startTouch.timestamp;
         this.decelerate(grid.sbHScroller, offset, timeOffset);

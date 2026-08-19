@@ -50,6 +50,10 @@ export class Drag extends FeatureBase {
     }
 
     scrollOnEdge(grid, event) {
+        if (!grid.isVScrollingEnabled()) {
+            return
+        }
+
         var cell = grid.getGridCellFromMousePoint(event.detail.mouse)
         const halfCellHeight = cell.cellEvent.bounds.height / 2
         const isLowerBottom = event.detail.mouse.y > grid.canvas.height - halfCellHeight

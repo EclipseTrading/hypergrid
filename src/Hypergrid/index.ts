@@ -1223,6 +1223,10 @@ var Hypergrid = Base.extend('Hypergrid', {
      * @return {boolean} Column is visible.
      */
     insureModelColIsVisible: function(colIndex, offsetX) {
+        if (!this.isHScrollingEnabled()) {
+            return false;
+        }
+
         var maxCols = this.getColumnCount() - 1, // -1 excludes partially visible columns
             indexToCheck = colIndex + Math.sign(offsetX),
             visible = !this.isColumnVisible(indexToCheck) || colIndex === maxCols;
@@ -1243,6 +1247,10 @@ var Hypergrid = Base.extend('Hypergrid', {
      * @return {boolean} Row is visible.
      */
     insureModelRowIsVisible: function(rowIndex, offsetY) {
+        if (!this.isVScrollingEnabled()) {
+            return false;
+        }
+
         var maxRows = this.getRowCount() - 1, // -1 excludes partially visible rows
             scrollOffset = (offsetY > -1) ? 1 : 0, // 1 to keep one blank line below active cell, 0 to keep zero lines above active cell
             indexToCheck = rowIndex + scrollOffset,

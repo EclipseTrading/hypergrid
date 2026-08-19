@@ -417,7 +417,14 @@ var defaults = {
      * @type {boolean}
      * @memberOf module:defaults
      */
-    scrollingEnabled: true,
+    horizontalScrollingEnabled: true,
+
+    /**
+     * @default
+     * @type {boolean}
+     * @memberOf module:defaults
+     */
+    verticalScrollingEnabled: true,
 
     /**
      * @default

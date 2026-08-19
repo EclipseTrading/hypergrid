@@ -15,6 +15,9 @@ export type Hypergrid = {
     sbVScroller: FinBar;
     sbHScroller: FinBar;
 
+    isVScrollingEnabled(): boolean;
+    isHScrollingEnabled(): boolean;
+
     getBounds(): Rectangle;
 
     /** The dimensions of the grid data have changed. You've been notified. */

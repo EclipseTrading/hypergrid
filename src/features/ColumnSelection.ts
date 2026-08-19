@@ -171,8 +171,11 @@ var ColumnSelection = Feature.extend('ColumnSelection', {
      * @param {Object} mouse - the event details
      */
     checkDragScroll: function(grid, mouse) {
+        if (!grid.isHScrollingEnabled()) {
+            return;
+        }
+
         if (
-            grid.properties.scrollingEnabled &&
             grid.getDataBounds().contains(mouse)
         ) {
             if (grid.isScrollingNow()) {
@@ -192,7 +195,7 @@ var ColumnSelection = Feature.extend('ColumnSelection', {
      * @param {Hypergrid} grid
      */
     scrollDrag: function(grid) {
-        if (!grid.isScrollingNow()) {
+        if (!grid.isScrollingNow() || !grid.isHScrollingEnabled()) {
             return;
         }
 
@@ -384,7 +387,7 @@ var ColumnSelection = Feature.extend('ColumnSelection', {
             maxViewableColumns = grid.renderer.visibleColumns.length - 1,
             maxColumns = grid.getColumnCount() - 1;
 
-        if (!grid.properties.scrollingEnabled) {
+        if (!grid.isHScrollingEnabled()) {
             maxColumns = Math.min(maxColumns, maxViewableColumns);
         }
 
@@ -413,9 +416,9 @@ var ColumnSelection = Feature.extend('ColumnSelection', {
             mouseCorner = grid.getMouseDown().plus(extent),
             newX = mouseCorner.x + offsetX,
             maxColumns = grid.getColumnCount() - 1,
-            maxViewableColumns = grid.getVisibleColumnsCount() - 1;
+            maxViewableColumns = grid.renderer.visibleColumns.length - 1;
 
-        if (!grid.properties.scrollingEnabled) {
+        if (!grid.isHScrollingEnabled()) {
             maxColumns = Math.min(maxColumns, maxViewableColumns);
         }
 

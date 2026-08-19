@@ -194,7 +194,7 @@ var CellSelection = Feature.extend('CellSelection', {
      * @param {Object} mouse - the event details
      */
     checkDragScroll: function(grid, mouse) {
-        if (!grid.properties.scrollingEnabled) {
+        if (!grid.isHScrollingEnabled() && !grid.isVScrollingEnabled()) {
             return;
         }
         var b = grid.getDataBounds();
@@ -212,9 +212,10 @@ var CellSelection = Feature.extend('CellSelection', {
     /**
      * @memberOf CellSelection.prototype
      * @this CellSelectionType
-     * @desc this function makes sure that while we are dragging outside of the grid visible bounds, we srcroll accordingly
+     * @desc this function makes sure that while we are dragging outside of the grid visible bounds, we scroll accordingly
      * @param {Hypergrid} grid
      */
+    // This is okay
     scrollDrag: function(grid) {
         if (grid.properties.singleCellSelection) {
             grid.setScrollingNow(false);
@@ -255,6 +256,13 @@ var CellSelection = Feature.extend('CellSelection', {
 
         var dragCellOffsetX = xOffset;
         var dragCellOffsetY = yOffset;
+
+        if (!grid.isHScrollingEnabled()) {
+            xOffset = dragCellOffsetX = 0;
+        }
+        if (!grid.isVScrollingEnabled()) {
+            yOffset = dragCellOffsetY = 0;
+        }
 
         if (dragEndInFixedAreaX) {
             dragCellOffsetX = 0;
