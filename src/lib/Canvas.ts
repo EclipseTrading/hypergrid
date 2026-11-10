@@ -292,8 +292,8 @@ export class HypergridCanvas implements Paintable, Resizable {
         var rect = this.getBoundingClientRect(this.div);
         var top = Math.floor(rect.top),
             left = Math.floor(rect.left),
-            width = Math.ceil(rect.width),
-            height = Math.ceil(rect.height);
+            width = Math.floor(rect.width),
+            height = Math.floor(rect.height);
 
         return {
             top: top,
@@ -330,8 +330,8 @@ export class HypergridCanvas implements Paintable, Resizable {
         this.canvas.width = Math.round(this.width * ratio);
         this.canvas.height = Math.round(this.height * ratio);
 
-        this.canvas.style.width = this.width + 'px';
-        this.canvas.style.height = this.height + 'px';
+        this.canvas.style.width = (this.canvas.width / ratio) + 'px';
+        this.canvas.style.height = (this.canvas.height / ratio) + 'px';
 
         this.gc.scale(ratio, ratio);
 
