@@ -96,7 +96,31 @@ describe('Base', function(){
         });
 
         it('should floor div bounding rect and align canvas CSS size with backing store across ratios', function(){
-            var HypergridCanvas = require('../dist/src/lib/Canvas').HypergridCanvas;
+            var fs = require('fs');
+            var path = require('path');
+            var ts = require('typescript');
+
+            var canvasTsPath = path.resolve(__dirname, '../src/lib/Canvas.ts');
+            var source = fs.readFileSync(canvasTsPath, 'utf8');
+            var transpiled = ts.transpileModule(source, {
+                compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2019 }
+            });
+
+            var CanvasModule = { exports: {} };
+            var customRequire = function(id) {
+                if (id === './DragDropManager') {
+                    return { DragDropManager: function() {} };
+                }
+                return require(id);
+            };
+            new Function('exports', 'require', 'module', '__filename', '__dirname', transpiled.outputText)(
+                CanvasModule.exports,
+                customRequire,
+                CanvasModule,
+                canvasTsPath,
+                path.dirname(canvasTsPath)
+            );
+            var HypergridCanvas = CanvasModule.exports.HypergridCanvas;
 
             var canvasEl = { width: 0, height: 0, style: {} };
             var scaleCalls = [];
