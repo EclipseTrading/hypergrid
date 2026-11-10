@@ -118,6 +118,24 @@ npm publish
 ```
 * Rinse and Repeat!
 
+## Publishing to npm
+
+The Publish workflow builds with Node 14, then uses Node 24 and npm's
+[trusted publishing](https://docs.npmjs.com/trusted-publishers/) support
+(npm 11.5.1 or later) to publish without an `NPM_TOKEN` secret.
+
+Before releasing, a package maintainer must configure a GitHub Actions trusted
+publisher in the npm settings for `@eclipsetrading/hypergrid`:
+
+* Organization or user: `EclipseTrading`
+* Repository: `hypergrid`
+* Workflow filename: `publish.yml`
+* Environment name: leave empty (the workflow does not use an environment)
+* Allowed action: `npm publish`
+
+The workflow requires `id-token: write` to authenticate with npm. Release names
+must be valid npm versions, such as `4.38.0`.
+
 ## Additional Resources
 
 Feel free to open [issues](https://github.com/fin-hypergrid/core/issues/new).
