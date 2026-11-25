@@ -111,6 +111,19 @@ describe('Base', function(){
                 if (id === './DragDropManager') {
                     return { DragDropManager: function() {} };
                 }
+                if (id === './pixelSnap') {
+                    var pixelSnapSource = fs.readFileSync(path.resolve(__dirname, '../src/lib/pixelSnap.ts'), 'utf8');
+                    var pixelSnapTranspiled = ts.transpileModule(pixelSnapSource, {
+                        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2019 }
+                    });
+                    var pixelSnapModule = { exports: {} };
+                    new Function('exports', 'require', 'module', pixelSnapTranspiled.outputText)(
+                        pixelSnapModule.exports,
+                        require,
+                        pixelSnapModule
+                    );
+                    return pixelSnapModule.exports;
+                }
                 return require(id);
             };
             new Function('exports', 'require', 'module', '__filename', '__dirname', transpiled.outputText)(
