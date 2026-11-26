@@ -1091,6 +1091,12 @@ function getCachedContext(canvasElement: any, contextAttributes: any) {
     };
 
     gc.isOpaque = contextAttributes?.alpha === false;
+    if (gc.isOpaque) {
+        gc.clearRect = function (x: number, y: number, width: number, height: number) {
+            gc.cache.fillStyle = gc.opaqueBackgroundColor || 'rgb(255, 255, 255)';
+            gc.fillRect(x, y, width, height);
+        };
+    }
 
     return Object.assign(gc, require('./graphics'));
 }
