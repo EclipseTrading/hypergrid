@@ -5,6 +5,7 @@ var Base = require('../Base');
 var images = require('../../images');
 var layerProps = require('./layer-props');
 var InclusiveRectangle = require('../lib/InclusiveRectangle');
+var pixelSnap = require('../lib/pixelSnap');
 
 /**
  * TODO - DataModel type should be imported from a "*.d.ts" file e.g.:
@@ -213,10 +214,19 @@ var Renderer = Base.extend('Renderer', {
      * @memberOf Renderer.prototype
      * @summary Notify the fin-hypergrid every time we've repainted.
      * @desc This is the entry point from fin-canvas.
+     * @this {RendererType}
      * @param {CanvasRenderingContext2D} gc
      */
     paint: function(gc) {
         if (this.grid.canvas) {
+            gc.opaqueBackgroundColor = this.properties.backgroundColor || 'rgb(255, 255, 255)';
+            if (gc.isOpaque && (!this._opaqueBackgroundInitialized || (this.gridRenderer && this.gridRenderer.reset) || this._lastCanvasWidth !== this.grid.canvas.bounds.width || this._lastCanvasHeight !== this.grid.canvas.bounds.height)) {
+                this._opaqueBackgroundInitialized = true;
+                this._lastCanvasWidth = this.grid.canvas.bounds.width;
+                this._lastCanvasHeight = this.grid.canvas.bounds.height;
+                gc.cache.fillStyle = gc.opaqueBackgroundColor;
+                gc.fillRect(0, 0, this._lastCanvasWidth, this._lastCanvasHeight);
+            }
             this.renderGrid(gc);
             this.grid.gridRenderedNotification();
         }
@@ -897,6 +907,7 @@ var Renderer = Base.extend('Renderer', {
                     bottom = gridProps.gridLinesUserDataArea ? viewHeight : lastHeaderRow && lastHeaderRow.bottom;
 
                 if (top !== undefined && bottom !== undefined) { // either undefined means nothing to draw
+                    var snappedGridLinesVWidth = pixelSnap.snapLineThicknessToDevicePixel(gridLinesVWidth);
                     gc.cache.fillStyle = gridLinesVColor;
 
                     visibleColumns.forEachWithNeg(function(vc, c) {
@@ -912,12 +923,18 @@ var Renderer = Base.extend('Renderer', {
                                 x -= gridLinesVWidth;
                             }
 
+                            var snappedX = pixelSnap.snapToDevicePixel(x);
+                            var snappedLineTop = pixelSnap.snapToDevicePixel(lineTop);
+                            var snappedHeight = pixelSnap.snapToDevicePixel(lineTop + height) - snappedLineTop;
+
                             // draw a single vertical grid line between both header and data cells OR a line segment in header only
-                            gc.fillRect(x, lineTop, gridLinesVWidth, height);
+                            gc.fillRect(snappedX, snappedLineTop, snappedGridLinesVWidth, snappedHeight);
 
                             // when above drew a line segment in header (vc.bottom defined AND higher up), draw a second vertical grid line between data cells
                             if (gridProps.gridLinesUserDataArea && vc.bottom < userDataAreaTop) {
-                                gc.fillRect(x, userDataAreaTop, gridLinesVWidth, bottom - userDataAreaTop);
+                                var snappedDataTop = pixelSnap.snapToDevicePixel(userDataAreaTop);
+                                var snappedDataHeight = pixelSnap.snapToDevicePixel(bottom) - snappedDataTop;
+                                gc.fillRect(snappedX, snappedDataTop, snappedGridLinesVWidth, snappedDataHeight);
                             }
                         }
                     });
@@ -931,8 +948,11 @@ var Renderer = Base.extend('Renderer', {
                 )
             ) {
                 var gridLinesHWidth = gridProps.gridLinesHWidth,
+                    snappedGridLinesHWidth = pixelSnap.snapLineThicknessToDevicePixel(gridLinesHWidth),
                     left = gridProps.gridLinesRowHeader ? 0 : visibleColumns[0].left,
-                    right = gridProps.gridLinesUserDataArea ? viewWidth : rowHeader.right;
+                    right = gridProps.gridLinesUserDataArea ? viewWidth : rowHeader.right,
+                    snappedLeft = pixelSnap.snapToDevicePixel(left),
+                    snappedWidth = pixelSnap.snapToDevicePixel(right) - snappedLeft;
 
                 gc.cache.fillStyle = gridLinesHColor;
 
@@ -942,7 +962,7 @@ var Renderer = Base.extend('Renderer', {
                         if (borderBox) {
                             y -= gridLinesHWidth;
                         }
-                        gc.fillRect(left, y, right - left, gridLinesHWidth);
+                        gc.fillRect(snappedLeft, pixelSnap.snapToDevicePixel(y), snappedWidth, snappedGridLinesHWidth);
                     }
                 });
             }

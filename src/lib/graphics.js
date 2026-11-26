@@ -1,18 +1,29 @@
 /* eslint-env browser */
 
 
+var pixelSnap = require('./pixelSnap');
+
 var API;
 
 function clearFill(x, y, width, height, color) {
+    var sx = pixelSnap.snapToDevicePixel(x);
+    var sy = pixelSnap.snapToDevicePixel(y);
+    var sw = pixelSnap.snapToDevicePixel(x + width) - sx;
+    var sh = pixelSnap.snapToDevicePixel(y + height) - sy;
     var a = alpha(color);
     if (a < 1) {
-        // If background is translucent, we must clear the rect before the fillRect
-        // below to prevent mixing with previous frame's render of this cell.
-        this.clearRect(x, y, width, height);
+        if (this.isOpaque) {
+            this.cache.fillStyle = this.opaqueBackgroundColor || 'rgb(255, 255, 255)';
+            this.fillRect(sx, sy, sw, sh);
+        } else {
+            // If background is translucent, we must clear the rect before the fillRect
+            // below to prevent mixing with previous frame's render of this cell.
+            this.clearRect(sx, sy, sw, sh);
+        }
     }
     if (a > 0) {
         this.cache.fillStyle = color;
-        this.fillRect(x, y, width, height);
+        this.fillRect(sx, sy, sw, sh);
     }
 }
 

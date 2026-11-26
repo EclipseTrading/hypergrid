@@ -1,6 +1,7 @@
 /* eslint-env browser */
 import { Point, Rectangle } from 'rectangular';
 import { DragDropManager } from './DragDropManager';
+import { getDevicePixelRatio, snapToDevicePixel } from './pixelSnap';
 
 if (typeof window.CustomEvent !== 'function') {
     // @ts-ignore
@@ -54,6 +55,7 @@ export class HypergridCanvas implements Paintable, Resizable {
     public hasMouse: boolean = false;
     public currentFPS: number = 0;
     public devicePixelRatio: number = 1;
+    private windowDevicePixelRatio: number = getDevicePixelRatio();
     public tickPainter: (time: number) => void;
     public tickResizer: (time: number) => void;
 
@@ -308,6 +310,12 @@ export class HypergridCanvas implements Paintable, Resizable {
     }
 
     public checksize(): void {
+        var currentDpr = getDevicePixelRatio();
+        if (currentDpr !== this.windowDevicePixelRatio) {
+            this.windowDevicePixelRatio = currentDpr;
+            this.resetZoom();
+            return;
+        }
         var sizeNow = this.getDivBoundingClientRect();
         if (sizeNow.width !== this.size.width || sizeNow.height !== this.size.height) {
             this.resize(sizeNow);
@@ -1072,6 +1080,17 @@ function getCachedContext(canvasElement: any, contextAttributes: any) {
     Object.getOwnPropertyNames(HypergridCanvas.graphicsContextAliases).forEach((alias) => {
         gc[alias] = gc[HypergridCanvas.graphicsContextAliases[alias]];
     });
+
+    var originalFillText = gc.fillText.bind(gc);
+    gc.fillText = function (text: string, x: number, y: number, maxWidth?: number) {
+        var snappedX = snapToDevicePixel(x);
+        var snappedY = snapToDevicePixel(y);
+        return maxWidth !== undefined
+            ? originalFillText(text, snappedX, snappedY, maxWidth)
+            : originalFillText(text, snappedX, snappedY);
+    };
+
+    gc.isOpaque = contextAttributes?.alpha === false;
 
     return Object.assign(gc, require('./graphics'));
 }
